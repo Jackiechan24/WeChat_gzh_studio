@@ -1,6 +1,6 @@
 {
   "name": "obsidian-wechat-layout",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "private": true,
   "description": "Obsidian 笔记公众号排版与富文本导出",
   "scripts": {

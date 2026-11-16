@@ -9,7 +9,8 @@ import { DEFAULTS, normalizeSettings, type LayoutSettings } from './settings';
 export interface ImageResolution { path: string; previewUrl: string; exportUrl?: string }
 export interface ArticleImage { source: string; path: string; alt: string; status: 'external' | 'embedded' | 'mapped' | 'local' | 'missing' | 'unsupported'; previewUrl?: string; exportUrl?: string }
 export interface ArticleResult {
-  title: string; previewHtml: string; exportHtml: string; text: string;
+  title: string; previewRoot: HTMLElement; exportRoot: HTMLElement; text: string;
+  readonly previewHtml: string; readonly exportHtml: string;
   images: ArticleImage[]; warnings: string[]; characters: number; wechatWords: number; minutes: number;
   codeBlocks: number; chapters: number;
 }
@@ -21,7 +22,6 @@ export interface RenderOptions {
   settings?: Partial<LayoutSettings>;
   resolveImage?: (path: string) => Promise<ImageResolution | null>;
 }
-const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const httpsUrl = (s: string) => { try { const u = new URL(s); return u.protocol === 'https:'; } catch { return false; } };
 const webUrl = (s: string) => /^https?:\/\//i.test(s);
 
@@ -217,10 +217,17 @@ export async function renderArticle(source: string, options: RenderOptions): Pro
   const sanitize=(html:string)=>purifier.sanitize(html, {
     ALLOWED_TAGS: ['p','br','h1','h2','h3','h4','h5','h6','strong','em','s','del','a','img','blockquote','ul','ol','li','table','thead','tbody','tr','th','td','pre','code','hr','mark','sup','sub','section','span'],
     ALLOWED_ATTR: ['href','src','alt','title','width','start','id','data-wx-callout','data-wx-callout-title','data-wx-footnotes'],
-    ALLOW_DATA_ATTR: false
+    ALLOW_DATA_ATTR: false,
+    RETURN_DOM_FRAGMENT: true
   });
-  const root = doc.createElement('section');root.innerHTML=sanitize(md.renderer.render(tokens,md.options,{}));
-  if(settings.footer.trim()){const footer=doc.createElement('section');footer.dataset.wxFooter='true';footer.innerHTML=sanitize(md.render(stripComments(settings.footer,warnings)));root.append(footer);}
+  const root = doc.createElement('section');
+  root.append(sanitize(md.renderer.render(tokens, md.options, {})));
+  if (settings.footer.trim()) {
+    const footer = doc.createElement('section');
+    footer.dataset.wxFooter = 'true';
+    footer.append(sanitize(md.render(stripComments(settings.footer, warnings))));
+    root.append(footer);
+  }
   const images: ArticleImage[] = [];
   const imageElements = Array.from(root.querySelectorAll<HTMLImageElement>('img'));
   const resolved = new Map<string, Promise<ImageResolution | null>>();
@@ -254,7 +261,6 @@ export async function renderArticle(source: string, options: RenderOptions): Pro
       const placeholder = doc.createElement('p'); placeholder.dataset.wxImage = String(index);
       placeholder.dataset.wxError = 'true';
       placeholder.textContent = `【图片${item.status === 'unsupported' ? '格式待处理' : '未找到'}：${item.alt}】`;
-      placeholder.setAttribute('style', 'color:#9a530c;background-color:#fff6e8;padding:14px;font-size:13px;');
       image.replaceWith(placeholder);
     }
     images.push(item);
@@ -283,7 +289,9 @@ export async function renderArticle(source: string, options: RenderOptions): Pro
   if (images.some(i => i.status === 'unsupported')) warnings.add('存在不支持的图片地址，复制前需要修复。');
   if (root.querySelector('a[href^="http"]')) warnings.add('外部链接保留地址；公众号中的可点击性需在后台检查。');
   return {
-    title, previewHtml: root.outerHTML, exportHtml: exportRoot.outerHTML, text,
+    title, previewRoot: root, exportRoot, text,
+    get previewHtml() { return root.outerHTML; },
+    get exportHtml() { return exportRoot.outerHTML; },
     images, warnings: [...warnings], characters, wechatWords, minutes: Math.max(1, Math.ceil(wechatWords / 450)),
     codeBlocks: root.querySelectorAll('pre').length, chapters
   };

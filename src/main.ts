@@ -422,7 +422,8 @@ export class WeChatPreviewView extends ItemView {
       this.result = result;
       const doc = this.contentEl.ownerDocument;
       const style = doc.createElement('style'); style.textContent = ':host{display:block;color-scheme:light}a{cursor:pointer}.wx-load-error{outline:2px solid #b45309;min-height:80px}';
-      const body = doc.createElement('div'); body.innerHTML = result.previewHtml;
+      const body = doc.createElement('div');
+      body.append(result.previewRoot.cloneNode(true));
       this.shadow.replaceChildren(style, body);
       body.addEventListener('click', event => { if ((event.target as Element).closest('a')) event.preventDefault(); });
       for (const image of body.querySelectorAll<HTMLImageElement>('img')) image.addEventListener('error', () => {
@@ -538,7 +539,8 @@ export class WeChatPreviewView extends ItemView {
 class LayoutSettingsTab extends PluginSettingTab {
   constructor(app:App,private plugin:WeChatLayoutPlugin){super(app,plugin);}
   display():void {
-    this.containerEl.empty();this.containerEl.createEl('h2',{text:'公众号排版'});
+    this.containerEl.empty();
+    new Setting(this.containerEl).setName('公众号排版').setHeading();
     this.containerEl.createEl('p',{text:'选一套完整风格，直接复制图文。每篇文章会记住所选风格，不需要调整排版参数。'});
     new Setting(this.containerEl).setName('常用风格').setDesc('没有单独选择风格的文章，将自动使用这一套。').addDropdown(dropdown=>{
       for(const profile of BUILTIN_STYLES)dropdown.addOption(profile.id,profile.name);

@@ -1,5 +1,20 @@
 import { getArticleColors, type LayoutSettings } from './settings';
 
+// Article styles must travel with the generated HTML when pasted into WeChat.
+function applyInlineStyles(element: HTMLElement, declarations: Record<string, string>): void {
+  for (const [property, value] of Object.entries(declarations)) {
+    element.style.setProperty(property, value);
+  }
+}
+
+function replaceInlineStyle(element: HTMLElement, cssText: string): void {
+  element.style.cssText = cssText;
+}
+
+function appendInlineStyle(element: HTMLElement, cssText: string): void {
+  replaceInlineStyle(element, element.style.cssText + cssText);
+}
+
 function retag(element: Element, tag: string): HTMLElement {
   const replacement = element.ownerDocument.createElement(tag);
   for (const attr of Array.from(element.attributes)) replacement.setAttribute(attr.name, attr.value);
@@ -37,7 +52,7 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
   const common = `box-sizing:border-box;font-family:${font};font-size:${size}px;line-height:${line}px;color:${color};font-weight:${s.fontWeight};letter-spacing:${s.letterSpacing}px;text-align:${s.textAlign};text-indent:0;white-space:normal;word-wrap:break-word;overflow-wrap:break-word;word-break:normal;`;
   const block = `${common}margin:0;padding:0;`;
   root.setAttribute('style', `${block}display:block;width:100%;max-width:100%;background-color:#ffffff;`);
-  root.style.padding = `0 ${s.contentInset}px`;
+  applyInlineStyles(root, { padding: `0 ${s.contentInset}px` });
   separateImages(root);
   for (const mark of Array.from(root.querySelectorAll('mark'))) retag(mark, 'span').dataset.wxHighlight = 'true';
   const codeColor=s.codeTheme==='dark'?'#e5e7eb':'#243042';
@@ -63,7 +78,7 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
   for (const element of root.querySelectorAll<HTMLElement>('*')) {
     const style = styles[element.tagName.toLowerCase()];
     if (style) element.setAttribute('style', style);
-    else element.style.boxSizing = 'border-box';
+    else applyInlineStyles(element, { 'box-sizing': 'border-box' });
     if (element.dataset.wxHighlight) element.setAttribute('style', `box-sizing:border-box;font-size:inherit;line-height:inherit;background-color:${s.highlightStyle==='underline'?'transparent':theme.soft};color:${s.highlightStyle==='underline'?'inherit':theme.accent};padding:1px 2px;${s.highlightStyle==='marker'?`border-bottom:3px solid ${theme.accent};`:s.highlightStyle==='underline'?`border-bottom:2px solid ${theme.accent};`:''}`);
     if (element.dataset.wxBlock === 'image') element.setAttribute('style', `box-sizing:border-box;display:block;width:100%;max-width:100%;margin:0;padding:${s.imageFrame==='card'?8:0}px;line-height:0;font-size:0;text-align:${s.imageAlign};${s.imageFrame==='card'?`background-color:${theme.soft};border:1px solid #dce4e2;border-radius:${s.imageRadius}px;`:''}`);
     if (element.dataset.wxError) element.setAttribute('style', `${block}padding:12px;color:#9a530c;background-color:#fff6e8;font-size:13px;line-height:21px;`);
@@ -83,10 +98,10 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
     heading.setAttribute('style', `${block}font-size:${headingSize}px;line-height:1.5;font-weight:${s.headingWeight};color:${headingColor};text-align:${level<=2?s.headingAlign:'left'};`);
     if (level === 2&&!heading.closest('[data-wx-footer]')) {
       chapters++;
-      if (s.chapter === 'line') { heading.style.borderLeft = `3px solid ${theme.accent}`; heading.style.paddingLeft = '11px'; }
-      else if (s.chapter === 'underline') { heading.style.borderBottom = `3px solid ${theme.accent}`; heading.style.paddingBottom = '8px'; }
-      else if(s.chapter==='soft'){heading.style.backgroundColor=theme.soft;heading.style.padding='8px 12px';heading.style.borderRadius='4px';}
-      else if(s.chapter==='outline'){heading.style.border=`1px solid ${theme.accent}`;heading.style.padding='7px 10px';heading.style.borderRadius='2px';}
+      if (s.chapter === 'line') { applyInlineStyles(heading, { 'border-left': `3px solid ${theme.accent}`, 'padding-left': '11px' }); }
+      else if (s.chapter === 'underline') { applyInlineStyles(heading, { 'border-bottom': `3px solid ${theme.accent}`, 'padding-bottom': '8px' }); }
+      else if(s.chapter==='soft'){applyInlineStyles(heading, { 'background-color': theme.soft, padding: '8px 12px', 'border-radius': '4px' });}
+      else if(s.chapter==='outline'){applyInlineStyles(heading, { border: `1px solid ${theme.accent}`, padding: '7px 10px', 'border-radius': '2px' });}
       const hasNumber = /^(?:\d+[.、．\s]|[一二三四五六七八九十百]+[、.．]|第.+[章节])/.test(heading.textContent?.trim() || '');
       const existing=s.numberChapters&&s.composition==='editorial'&&hasNumber?takeHeadingNumber(heading):null;
       if (s.numberChapters && (!hasNumber||existing)) {
@@ -96,26 +111,26 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
       }
     }
   }
-  for(const h of root.querySelectorAll<HTMLElement>('h3')){if(s.h3Style==='line'){h.style.borderLeft=`2px solid ${theme.accent}`;h.style.paddingLeft='8px';}else if(s.h3Style==='underline'){h.style.borderBottom='1px solid #dce4e2';h.style.paddingBottom='6px';}}
-  for(const p of root.querySelectorAll<HTMLElement>(':scope > p'))if(s.paragraphIndent)p.style.textIndent='2em';
+  for(const h of root.querySelectorAll<HTMLElement>('h3')){if(s.h3Style==='line'){applyInlineStyles(h, { 'border-left': `2px solid ${theme.accent}`, 'padding-left': '8px' });}else if(s.h3Style==='underline'){applyInlineStyles(h, { 'border-bottom': '1px solid #dce4e2', 'padding-bottom': '6px' });}}
+  for(const p of root.querySelectorAll<HTMLElement>(':scope > p'))if(s.paragraphIndent)applyInlineStyles(p, { 'text-indent': '2em' });
   for(const table of root.querySelectorAll<HTMLTableElement>('table'))for(const [index,row]of Array.from(table.rows).entries())for(const cell of Array.from(row.cells)){
-    if(s.tableStyle==='striped'&&cell.tagName==='TD'&&index%2===0)cell.style.backgroundColor=theme.soft;
-    if(s.tableStyle==='minimal'){cell.style.borderLeft='0';cell.style.borderRight='0';cell.style.borderTop='0';if(cell.tagName==='TH')cell.style.borderBottom=`2px solid ${theme.accent}`;}
+    if(s.tableStyle==='striped'&&cell.tagName==='TD'&&index%2===0)applyInlineStyles(cell, { 'background-color': theme.soft });
+    if(s.tableStyle==='minimal'){applyInlineStyles(cell, { 'border-left': '0', 'border-right': '0', 'border-top': '0' });if(cell.tagName==='TH')applyInlineStyles(cell, { 'border-bottom': `2px solid ${theme.accent}` });}
   }
   for (const quote of root.querySelectorAll<HTMLElement>('blockquote')) {
     const caution = /^(warning|danger|caution|failure|error)$/.test(quote.dataset.wxCallout || '');
-    if (caution) { quote.style.borderLeftColor = '#b45309'; quote.style.backgroundColor = s.quoteStyle==='line'?'transparent':'#fff6e8'; }
+    if (caution) { applyInlineStyles(quote, { 'border-left-color': '#b45309', 'background-color': s.quoteStyle==='line'?'transparent':'#fff6e8' }); }
     const title = quote.querySelector<HTMLElement>(':scope > p[data-wx-callout-title]');
-    if (title) { title.style.color = caution ? '#9a530c' : theme.accent; title.style.fontWeight = '700'; }
+    if (title) { applyInlineStyles(title, { color: caution ? '#9a530c' : theme.accent, 'font-weight': '700' }); }
   }
 
   stylePresetComposition(root,s,block);
   stylePresetHeadings(root,s);
   const footer=root.querySelector<HTMLElement>(':scope > [data-wx-footer]');
   if(footer){
-    footer.style.cssText=`${block}display:block;width:100%;border-top:1px solid ${s.composition==='bulletin'?'#d9a4a7':s.composition==='journal'?'#d8bea4':s.composition==='apple'?'#d2d2d7':'#dce4e2'};padding-top:18px;`;
-    if(s.composition==='cards'){footer.style.backgroundColor='#ffffff';footer.style.padding='16px';footer.style.borderRadius='6px';}
-    for(const p of footer.querySelectorAll<HTMLElement>('p')){p.style.fontSize=`${Math.max(13,s.fontSize-2)}px`;p.style.lineHeight='1.8';p.style.textIndent='0';}
+    replaceInlineStyle(footer, `${block}display:block;width:100%;border-top:1px solid ${s.composition==='bulletin'?'#d9a4a7':s.composition==='journal'?'#d8bea4':s.composition==='apple'?'#d2d2d7':'#dce4e2'};padding-top:18px;`);
+    if(s.composition==='cards'){applyInlineStyles(footer, { 'background-color': '#ffffff', padding: '16px', 'border-radius': '6px' });}
+    for(const p of footer.querySelectorAll<HTMLElement>('p')){applyInlineStyles(p, { 'font-size': `${Math.max(13,s.fontSize-2)}px`, 'line-height': '1.8', 'text-indent': '0' });}
   }
 
   // Static visible markers avoid browser/WeChat differences in native list bullets.
@@ -143,7 +158,7 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
         if (task) { marker=task[1];node.textContent=node.textContent.replace(/^\s*[☐☑]\s*/,''); }
         break;
       }
-      lineElement.style.textAlign='left';lineElement.style.paddingLeft=`${indent}px`; lineElement.style.textIndent=`-${indent}px`;
+      applyInlineStyles(lineElement, { 'text-align': 'left', 'padding-left': `${indent}px`, 'text-indent': `-${indent}px` });
       const symbol=doc.createElement('span');symbol.dataset.wxMarker='true';symbol.textContent=`${marker} `;
       symbol.setAttribute('style', `display:inline-block;box-sizing:border-box;width:${indent}px;font-family:${font};font-size:${ordered ? size : Math.max(14,size-1)}px;line-height:${line}px;text-indent:0;text-align:left;font-weight:500;color:${theme.accent};`);
       lineElement.prepend(symbol);
@@ -152,7 +167,7 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
         const inset=doc.createElement('section');inset.setAttribute('style',`${block}display:block;width:100%;padding-left:${indent}px;padding-top:${s.listGap}px;`);
         child.replaceWith(inset);inset.append(child);
       }
-      if(i) item.style.paddingTop=`${s.listGap}px`;
+      if(i) applyInlineStyles(item, { 'padding-top': `${s.listGap}px` });
       item.setAttribute('role','listitem');
     }
   }
@@ -163,12 +178,9 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
   for (const paragraph of root.querySelectorAll<HTMLElement>('p')) {
     const firstText = paragraph.textContent?.trim() || '';
     if (paragraph.closest('[data-wx-footnotes]') || notePrefix.test(firstText)) {
-      paragraph.style.fontSize = '13px';
-      paragraph.style.lineHeight = '1.6';
-      paragraph.style.textIndent = '0';
+      applyInlineStyles(paragraph, { 'font-size': '13px', 'line-height': '1.6', 'text-indent': '0' });
       for (const inline of paragraph.querySelectorAll<HTMLElement>('code,[data-wx-marker]')) {
-        inline.style.fontSize = 'inherit';
-        inline.style.lineHeight = 'inherit';
+        applyInlineStyles(inline, { 'font-size': 'inherit', 'line-height': 'inherit' });
       }
     }
   }
@@ -214,53 +226,53 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
 function stylePresetComposition(root:HTMLElement,s:LayoutSettings,block:string):void {
   const lead=root.firstElementChild?.tagName==='P'?root.firstElementChild as HTMLElement:null;
   if(s.composition==='classic'||s.composition==='reading'){
-    if(lead){lead.style.color='#46625b';lead.style.paddingBottom='18px';lead.style.borderBottom='1px solid #e1ece7';}
+    if(lead){applyInlineStyles(lead, { color: '#46625b', 'padding-bottom': '18px', 'border-bottom': '1px solid #e1ece7' });}
     return;
   }
   if(s.composition==='editorial'){
     for(const h of root.querySelectorAll<HTMLElement>('h2')){
-      h.style.cssText+=`border:0;border-top:3px solid #191919;border-bottom:1px solid #191919;padding:20px 0 18px;text-align:center;`;
-      const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)n.style.cssText='display:block;font-family:Georgia,"Times New Roman",serif;font-size:inherit;font-weight:400;line-height:1;color:#191919;padding:0 0 8px;margin:0;';
+      appendInlineStyle(h, `border:0;border-top:3px solid #191919;border-bottom:1px solid #191919;padding:20px 0 18px;text-align:center;`);
+      const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)replaceInlineStyle(n, 'display:block;font-family:Georgia,"Times New Roman",serif;font-size:inherit;font-weight:400;line-height:1;color:#191919;padding:0 0 8px;margin:0;');
     }
-    if(lead){lead.style.fontStyle='italic';lead.style.color='#555555';lead.style.paddingBottom='22px';lead.style.borderBottom='1px solid #d8d8d8';}
+    if(lead){applyInlineStyles(lead, { 'font-style': 'italic', color: '#555555', 'padding-bottom': '22px', 'border-bottom': '1px solid #d8d8d8' });}
     for(const quote of root.querySelectorAll<HTMLElement>('blockquote')){
       if(quote.dataset.wxCallout)continue;
-      quote.style.cssText+=`border:0;border-top:1px solid #8b8b8b;border-bottom:1px solid #8b8b8b;background-color:transparent;padding:20px 8px;font-style:italic;`;
-      for(const p of quote.querySelectorAll<HTMLElement>('p')){p.style.textAlign='center';}
+      appendInlineStyle(quote, `border:0;border-top:1px solid #8b8b8b;border-bottom:1px solid #8b8b8b;background-color:transparent;padding:20px 8px;font-style:italic;`);
+      for(const p of quote.querySelectorAll<HTMLElement>('p')){applyInlineStyles(p, { 'text-align': 'center' });}
     }
   }else if(s.composition==='cards'){
-    root.style.backgroundColor='#f1f5fb';root.style.padding=`12px ${s.contentInset}px`;
+    applyInlineStyles(root, { 'background-color': '#f1f5fb', padding: `12px ${s.contentInset}px` });
     for(const h of root.querySelectorAll<HTMLElement>('h2')){
-      h.style.cssText+=`border:0;background-color:#2458ab;color:#ffffff;padding:10px 12px;border-radius:5px;`;
-      const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)n.style.color='#c5d9ff';
+      appendInlineStyle(h, `border:0;background-color:#2458ab;color:#ffffff;padding:10px 12px;border-radius:5px;`);
+      const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)applyInlineStyles(n, { color: '#c5d9ff' });
     }
   }else if(s.composition==='apple'){
-    root.style.backgroundColor='#ffffff';
+    applyInlineStyles(root, { 'background-color': '#ffffff' });
     const intro=lead||(root.firstElementChild?.tagName==='H1'&&root.firstElementChild.nextElementSibling?.tagName==='P'?root.firstElementChild.nextElementSibling as HTMLElement:null);
-    if(intro){intro.style.fontWeight='500';intro.style.textAlign='center';intro.style.color='#6e6e73';intro.style.paddingBottom='20px';}
-    for(const strong of root.querySelectorAll<HTMLElement>('strong'))strong.style.color='#1d1d1f';
-    for(const image of root.querySelectorAll<HTMLElement>('[data-wx-block="image"]')){image.style.backgroundColor='#f5f5f7';image.style.border='0';image.style.borderRadius='14px';image.style.padding='16px';}
-    for(const quote of root.querySelectorAll<HTMLElement>('blockquote'))if(!quote.dataset.wxCallout){quote.style.border='0';quote.style.borderRadius='14px';quote.style.backgroundColor='#f5f5f7';quote.style.padding='20px';}
-    for(const code of root.querySelectorAll<HTMLElement>('pre')){code.style.border='0';code.style.borderRadius='12px';code.style.backgroundColor='#f5f5f7';}
-    for(const code of root.querySelectorAll<HTMLElement>('code'))code.style.color='#1d1d1f';
-    for(const th of root.querySelectorAll<HTMLElement>('th')){th.style.backgroundColor='#f5f5f7';th.style.color='#1d1d1f';}
-    for(const rule of root.querySelectorAll<HTMLElement>('hr'))rule.style.borderTop='1px solid #d2d2d7';
+    if(intro){applyInlineStyles(intro, { 'font-weight': '500', 'text-align': 'center', color: '#6e6e73', 'padding-bottom': '20px' });}
+    for(const strong of root.querySelectorAll<HTMLElement>('strong'))applyInlineStyles(strong, { color: '#1d1d1f' });
+    for(const image of root.querySelectorAll<HTMLElement>('[data-wx-block="image"]')){applyInlineStyles(image, { 'background-color': '#f5f5f7', border: '0', 'border-radius': '14px', padding: '16px' });}
+    for(const quote of root.querySelectorAll<HTMLElement>('blockquote'))if(!quote.dataset.wxCallout){applyInlineStyles(quote, { border: '0', 'border-radius': '14px', 'background-color': '#f5f5f7', padding: '20px' });}
+    for(const code of root.querySelectorAll<HTMLElement>('pre')){applyInlineStyles(code, { border: '0', 'border-radius': '12px', 'background-color': '#f5f5f7' });}
+    for(const code of root.querySelectorAll<HTMLElement>('code'))applyInlineStyles(code, { color: '#1d1d1f' });
+    for(const th of root.querySelectorAll<HTMLElement>('th')){applyInlineStyles(th, { 'background-color': '#f5f5f7', color: '#1d1d1f' });}
+    for(const rule of root.querySelectorAll<HTMLElement>('hr'))applyInlineStyles(rule, { 'border-top': '1px solid #d2d2d7' });
   }else if(s.composition==='journal'){
-    root.style.backgroundColor='#fffaf2';root.style.padding='18px 14px';
-    for(const h of root.querySelectorAll<HTMLElement>('h2'))h.style.cssText+='border:0;border-bottom:1px dashed #c39b76;padding:0 0 10px;text-align:left;';
+    applyInlineStyles(root, { 'background-color': '#fffaf2', padding: '18px 14px' });
+    for(const h of root.querySelectorAll<HTMLElement>('h2'))appendInlineStyle(h, 'border:0;border-bottom:1px dashed #c39b76;padding:0 0 10px;text-align:left;');
     for(const quote of root.querySelectorAll<HTMLElement>('blockquote')){
       if(quote.dataset.wxCallout)continue;
-      quote.style.cssText+='border:1px dashed #c9aa89;background-color:#fffdf8;border-radius:3px;padding:16px;';
+      appendInlineStyle(quote, 'border:1px dashed #c9aa89;background-color:#fffdf8;border-radius:3px;padding:16px;');
     }
-    for(const image of root.querySelectorAll<HTMLElement>('[data-wx-block="image"]'))image.style.cssText+='background-color:#ffffff;border:1px solid #e6d3bb;padding:7px;';
+    for(const image of root.querySelectorAll<HTMLElement>('[data-wx-block="image"]'))appendInlineStyle(image, 'background-color:#ffffff;border:1px solid #e6d3bb;padding:7px;');
   }else if(s.composition==='technical'){
     for(const h of root.querySelectorAll<HTMLElement>('h2')){
-      h.style.cssText+='background-color:#183047;color:#ffffff;border:0;border-left:4px solid #71c9d0;padding:12px;';
-      const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)n.style.cssText='font-family:Consolas,monospace;font-size:inherit;font-weight:700;line-height:1.5;color:#86d2da;padding-right:10px;';
+      appendInlineStyle(h, 'background-color:#183047;color:#ffffff;border:0;border-left:4px solid #71c9d0;padding:12px;');
+      const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)replaceInlineStyle(n, 'font-family:Consolas,monospace;font-size:inherit;font-weight:700;line-height:1.5;color:#86d2da;padding-right:10px;');
     }
-    for(const cell of root.querySelectorAll<HTMLElement>('th')){cell.style.backgroundColor='#183047';cell.style.color='#ffffff';}
-    for(const code of root.querySelectorAll<HTMLElement>('pre')){code.style.border='0';code.style.borderRadius='0';}
-    if(lead){lead.style.cssText+='background-color:#f0f5f9;border-top:3px solid #183047;padding:14px;';}
+    for(const cell of root.querySelectorAll<HTMLElement>('th')){applyInlineStyles(cell, { 'background-color': '#183047', color: '#ffffff' });}
+    for(const code of root.querySelectorAll<HTMLElement>('pre')){applyInlineStyles(code, { border: '0', 'border-radius': '0' });}
+    if(lead){appendInlineStyle(lead, 'background-color:#f0f5f9;border-top:3px solid #183047;padding:14px;');}
   }
 }
 function groupChapterCards(root:HTMLElement,block:string):void {
@@ -272,7 +284,7 @@ function groupChapterCards(root:HTMLElement,block:string):void {
     if(kind==='h2'||!card){
       card=root.ownerDocument.createElement('section');card.dataset.wxChapterCard='true';
       card.setAttribute('style',`${block}display:block;width:100%;max-width:100%;background-color:#ffffff;border:1px solid #dfe7f1;border-radius:9px;padding:16px 8px;margin-top:${root.childElementCount?18:0}px;`);
-      root.append(card);node.style.paddingTop='0';
+      root.append(card);applyInlineStyles(node, { 'padding-top': '0' });
     }
     card.append(node);
   }
@@ -298,31 +310,30 @@ function stylePresetHeadings(root:HTMLElement,s:LayoutSettings):void {
   const sizes = [20, 19, 17, 16, 15, 14];
   const accent = s.accentColor || '#087f72';
   for(const h of root.querySelectorAll<HTMLElement>('h1,h2,h3,h4,h5,h6')){
-    const level=Number(h.tagName[1]);h.style.fontSize=`${sizes[level-1]}px`;
-    h.style.fontWeight=level===1?'800':level===4?'600':'700';h.style.textIndent='0';
-    if(level===1){h.style.lineHeight='1.4';h.style.textAlign=s.composition==='editorial'||s.composition==='journal'?'center':'left';h.style.paddingBottom='14px';h.style.borderBottom=`${s.composition==='journal'?1:3}px solid ${accent}`;h.style.color=accent;}
+    const level=Number(h.tagName[1]);applyInlineStyles(h, { 'font-size': `${sizes[level-1]}px`, 'font-weight': level===1?'800':level===4?'600':'700', 'text-indent': '0' });
+    if(level===1){applyInlineStyles(h, { 'line-height': '1.4', 'text-align': s.composition==='editorial'||s.composition==='journal'?'center':'left', 'padding-bottom': '14px', 'border-bottom': `${s.composition==='journal'?1:3}px solid ${accent}`, color: accent });}
     if(level===3){
-      h.style.lineHeight='1.55';h.style.border='0';h.style.textAlign='left';
-      if(s.composition==='cards'){h.style.borderLeft=`2px solid ${accent}`;h.style.paddingLeft='8px';}
-      else{h.style.borderBottom=`1px ${s.composition==='journal'||s.composition==='bulletin'?'dashed':'solid'} ${s.composition==='editorial'?'#b5b5b5':accent}`;h.style.padding='0 0 7px';}
+      applyInlineStyles(h, { 'line-height': '1.55', border: '0', 'text-align': 'left' });
+      if(s.composition==='cards'){applyInlineStyles(h, { 'border-left': `2px solid ${accent}`, 'padding-left': '8px' });}
+      else{applyInlineStyles(h, { 'border-bottom': `1px ${s.composition==='journal'||s.composition==='bulletin'?'dashed':'solid'} ${s.composition==='editorial'?'#b5b5b5':accent}`, padding: '0 0 7px' });}
     }
     if(level===4){
-      h.style.lineHeight='1.6';h.style.border='0';h.style.textAlign='left';h.style.letterSpacing='0.2px';
-      if(s.composition==='editorial'){h.style.borderLeft='2px solid #191919';h.style.paddingLeft='9px';}
-      else if(s.composition==='journal'){h.style.borderBottom='1px dotted #d6b99a';h.style.paddingBottom='5px';}
-      else{h.style.backgroundColor=s.composition==='bulletin'?'#fff1f1':s.composition==='technical'?'#edf3f7':s.composition==='cards'?'#eff4fc':'#f1f7f4';h.style.padding='5px 8px';h.style.borderRadius='3px';}
+      applyInlineStyles(h, { 'line-height': '1.6', border: '0', 'text-align': 'left', 'letter-spacing': '0.2px' });
+      if(s.composition==='editorial'){applyInlineStyles(h, { 'border-left': '2px solid #191919', 'padding-left': '9px' });}
+      else if(s.composition==='journal'){applyInlineStyles(h, { 'border-bottom': '1px dotted #d6b99a', 'padding-bottom': '5px' });}
+      else{applyInlineStyles(h, { 'background-color': s.composition==='bulletin'?'#fff1f1':s.composition==='technical'?'#edf3f7':s.composition==='cards'?'#eff4fc':'#f1f7f4', padding: '5px 8px', 'border-radius': '3px' });}
     }
     if(s.composition==='apple'){
-      h.style.color=level<=3?'#1d1d1f':'#6e6e73';h.style.border='0';h.style.backgroundColor='transparent';h.style.borderRadius='0';h.style.padding='0';h.style.letterSpacing='0';h.style.lineHeight=level<=2?'1.3':'1.45';h.style.textAlign=level===1?'center':'left';
+      applyInlineStyles(h, { color: level<=3?'#1d1d1f':'#6e6e73', border: '0', 'background-color': 'transparent', 'border-radius': '0', padding: '0', 'letter-spacing': '0', 'line-height': level<=2?'1.3':'1.45', 'text-align': level===1?'center':'left' });
     }
     if(s.composition==='bulletin'){
-      if(level===2){h.style.cssText+='border:0;border-bottom:2px solid #b22d35;padding:0 0 10px;color:#292b30;text-align:left;';
-        const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)n.style.cssText='display:inline-block;font-family:Arial,sans-serif;font-size:inherit;line-height:1.4;font-weight:700;background-color:#b22d35;color:#ffffff;padding:3px 7px;margin-right:9px;border-radius:2px;';
-      }else if(level===3)h.style.color='#a32630';
+      if(level===2){appendInlineStyle(h, 'border:0;border-bottom:2px solid #b22d35;padding:0 0 10px;color:#292b30;text-align:left;');
+        const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)replaceInlineStyle(n, 'display:inline-block;font-family:Arial,sans-serif;font-size:inherit;line-height:1.4;font-weight:700;background-color:#b22d35;color:#ffffff;padding:3px 7px;margin-right:9px;border-radius:2px;');
+      }else if(level===3)applyInlineStyles(h, { color: '#a32630' });
     }
   }
   if(s.composition==='bulletin'){
-    for(const th of root.querySelectorAll<HTMLElement>('th')){th.style.backgroundColor='#b22d35';th.style.color='#ffffff';}
-    for(const quote of root.querySelectorAll<HTMLElement>('blockquote'))if(!quote.dataset.wxCallout){quote.style.borderLeft='4px solid #b22d35';quote.style.backgroundColor='#fff5f4';}
+    for(const th of root.querySelectorAll<HTMLElement>('th')){applyInlineStyles(th, { 'background-color': '#b22d35', color: '#ffffff' });}
+    for(const quote of root.querySelectorAll<HTMLElement>('blockquote'))if(!quote.dataset.wxCallout){applyInlineStyles(quote, { 'border-left': '4px solid #b22d35', 'background-color': '#fff5f4' });}
   }
 }

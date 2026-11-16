@@ -14,7 +14,10 @@ export function buildStylePicker(body:HTMLElement,ctx:{selectedId:string;choose:
     const canvas=doc.createElement('div');canvas.className='wx-preset-canvas';thumb.append(canvas);button.append(thumb);
     const shadow=canvas.attachShadow({mode:'open'});
     void renderArticle(SAMPLE,{document:doc,sourcePath:'风格示例.md',settings:profile.settings,resolveImage:async()=>null}).then(result=>{
-      if(disposed)return;const content=doc.createElement('div');content.innerHTML=result.previewHtml;shadow.append(content);
+      if (disposed) return;
+      const content = doc.createElement('div');
+      content.append(result.previewRoot);
+      shadow.append(content);
     });
     const meta=doc.createElement('div');meta.className='wx-preset-meta';const title=doc.createElement('strong');title.textContent=profile.name;title.id=`${body.parentElement?.id}-${profile.id}`;button.setAttribute('aria-labelledby',title.id);meta.append(title);
     if(profile.id===ctx.selectedId){const check=doc.createElement('span');check.className='wx-preset-check';setIcon(check,'check');meta.append(check);}

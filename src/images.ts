@@ -71,7 +71,7 @@ export async function normalizeImage(document: Document, bytes: ArrayBuffer, mim
 }
 
 export async function prepareArticle(result: ArticleResult, options: ImageCopyOptions): Promise<PreparedArticle> {
-  const host = options.document.createElement('div'); host.innerHTML = result.exportHtml;
+  const root = options.document.importNode(result.exportRoot, true);
   const cache = new Map<string, Promise<string>>();
   let completed = 0, bytesTotal = 0;
   const failures: string[] = [];
@@ -117,13 +117,13 @@ export async function prepareArticle(result: ArticleResult, options: ImageCopyOp
   await Promise.all(Array.from({ length: Math.min(3, result.images.length) }, () => worker()));
   if (failures.length) throw new ImageCopyError(failures);
   for (let index = 0; index < result.images.length; index++) {
-    const image = host.querySelector<HTMLImageElement>(`img[data-wx-image="${index}"]`);
+    const image = root.querySelector<HTMLImageElement>(`img[data-wx-image="${index}"]`);
     if (!image || !encoded.has(index)) throw new ImageCopyError([`第 ${index + 1} 张图片的位置未能保留`]);
     image.setAttribute('src', encoded.get(index)!);
   }
-  for (const el of host.querySelectorAll<HTMLElement>('*')) {
+  for (const el of root.querySelectorAll<HTMLElement>('*')) {
     for (const attr of Array.from(el.attributes)) if (attr.name.startsWith('data-') || attr.name === 'id' || attr.name === 'class') el.removeAttribute(attr.name);
   }
-  if (Array.from(host.querySelectorAll('img')).some(img => !img.getAttribute('src')?.startsWith('data:image/'))) throw new ImageCopyError(['存在未嵌入的图片，请重新复制']);
-  return { html: host.innerHTML, text: result.text, imageCount: result.images.length, bytes: bytesTotal };
+  if (Array.from(root.querySelectorAll('img')).some(img => !img.getAttribute('src')?.startsWith('data:image/'))) throw new ImageCopyError(['存在未嵌入的图片，请重新复制']);
+  return { html: root.outerHTML, text: result.text, imageCount: result.images.length, bytes: bytesTotal };
 }
