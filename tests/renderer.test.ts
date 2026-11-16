@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { JSDOM } from 'jsdom';
+import { createTestDocument } from './dom';
 import { renderArticle, type RenderOptions } from '../src/renderer';
 import { normalizeSettings } from '../src/settings';
-const document = new JSDOM().window.document as unknown as Document;
+const document = createTestDocument();
 const render = (source: string, extra: Partial<RenderOptions> = {}) => renderArticle(source, { document, sourcePath: '文章/发布测试.md', ...extra });
 const dom = (html: string) => { const el = document.createElement('div'); el.innerHTML = html; return el; };
 

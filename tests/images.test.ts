@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { JSDOM } from 'jsdom';
+import { createTestDocument } from './dom';
 import { renderArticle, type ArticleResult } from '../src/renderer';
 import { prepareArticle, detectImageMime, ImageCopyError, imageDataUrl } from '../src/images';
-const document = new JSDOM().window.document as unknown as Document;
+const document = createTestDocument();
 const png = async () => { const b = await readFile('examples/排版示意.png'); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; };
 const render = (source: string) => renderArticle(source, { document, sourcePath: '演示/test.md', resolveImage: async path => path === 'missing.png' ? null : ({ path, previewUrl: 'app://local/' + encodeURIComponent(path) }) });
 const dom = (html: string) => { const el = document.createElement('div'); el.innerHTML = html; return el; };

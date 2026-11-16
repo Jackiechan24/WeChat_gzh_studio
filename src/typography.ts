@@ -1,3 +1,4 @@
+import { createDetachedElement } from './dom';
 import { getArticleColors, type LayoutSettings } from './settings';
 
 // Article styles must travel with the generated HTML when pasted into WeChat.
@@ -15,8 +16,8 @@ function appendInlineStyle(element: HTMLElement, cssText: string): void {
   replaceInlineStyle(element, element.style.cssText + cssText);
 }
 
-function retag(element: Element, tag: string): HTMLElement {
-  const replacement = element.ownerDocument.createElement(tag);
+function retag(element: Element, tag: 'section' | 'span'): HTMLElement {
+  const replacement = createDetachedElement(element.ownerDocument, tag);
   for (const attr of Array.from(element.attributes)) replacement.setAttribute(attr.name, attr.value);
   replacement.append(...Array.from(element.childNodes)); element.replaceWith(replacement); return replacement;
 }
@@ -37,7 +38,7 @@ function separateImages(root: HTMLElement): void {
     };
     for (const image of images) {
       range.setEndBefore(image); appendText();
-      const block = doc.createElement('section'); block.dataset.wxBlock = 'image'; block.append(image.cloneNode(true)); output.push(block);
+      const block = createDetachedElement(doc, 'section'); block.dataset.wxBlock = 'image'; block.append(image.cloneNode(true)); output.push(block);
       range.setStartAfter(image);
     }
     range.setEnd(paragraph, paragraph.childNodes.length); appendText(); paragraph.replaceWith(...output);
@@ -105,7 +106,7 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
       const hasNumber = /^(?:\d+[.、．\s]|[一二三四五六七八九十百]+[、.．]|第.+[章节])/.test(heading.textContent?.trim() || '');
       const existing=s.numberChapters&&s.composition==='editorial'&&hasNumber?takeHeadingNumber(heading):null;
       if (s.numberChapters && (!hasNumber||existing)) {
-        const number = doc.createElement('span');number.dataset.wxChapterNumber='true'; number.textContent = existing||`${String(chapters).padStart(2,'0')} `;
+        const number = createDetachedElement(doc, 'span');number.dataset.wxChapterNumber='true'; number.textContent = existing||`${String(chapters).padStart(2,'0')} `;
         number.setAttribute('style', `font-family:${font};font-size:${s.chapter === 'number' ? headingSize+4 : headingSize}px;line-height:1.5;font-weight:700;color:${theme.accent};padding-right:8px;`);
         heading.prepend(number);
       }
@@ -143,7 +144,7 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
     const indent = ordered ? Math.max(s.listIndent+2,String(start+items.length-1).length*8+10) : s.listIndent;
     for (let i=0;i<items.length;i++) {
       const item=items[i];
-      const first = doc.createElement('p'); first.setAttribute('style', block);
+      const first = createDetachedElement(doc, 'p'); first.setAttribute('style', block);
       while (item.firstChild && !(item.firstChild.nodeType===1 && /^(P|UL|OL|SECTION|BLOCKQUOTE|PRE|TABLE|H[1-6])$/.test((item.firstChild as Element).tagName))) first.append(item.firstChild);
       let lineElement: HTMLElement;
       if ((first.textContent||'').trim() || first.querySelector('img,code')) { item.prepend(first); lineElement=first; }
@@ -159,12 +160,12 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
         break;
       }
       applyInlineStyles(lineElement, { 'text-align': 'left', 'padding-left': `${indent}px`, 'text-indent': `-${indent}px` });
-      const symbol=doc.createElement('span');symbol.dataset.wxMarker='true';symbol.textContent=`${marker} `;
+      const symbol=createDetachedElement(doc, 'span');symbol.dataset.wxMarker='true';symbol.textContent=`${marker} `;
       symbol.setAttribute('style', `display:inline-block;box-sizing:border-box;width:${indent}px;font-family:${font};font-size:${ordered ? size : Math.max(14,size-1)}px;line-height:${line}px;text-indent:0;text-align:left;font-weight:500;color:${theme.accent};`);
       lineElement.prepend(symbol);
       const children=Array.from(item.children) as HTMLElement[];
       for(const child of children) if(child!==lineElement) {
-        const inset=doc.createElement('section');inset.setAttribute('style',`${block}display:block;width:100%;padding-left:${indent}px;padding-top:${s.listGap}px;`);
+        const inset=createDetachedElement(doc, 'section');inset.setAttribute('style',`${block}display:block;width:100%;padding-left:${indent}px;padding-top:${s.listGap}px;`);
         child.replaceWith(inset);inset.append(child);
       }
       if(i) applyInlineStyles(item, { 'padding-top': `${s.listGap}px` });
@@ -209,7 +210,7 @@ export function applyArticleLayout(root: HTMLElement, s: LayoutSettings): { chap
         else gap=s.paragraphGap;
       }
       if(previous&&!insideQuote&&(next==='image'||prev==='image'))gap=/^h[1-6]$/.test(next)?Math.max(gap,s.imageGap):s.imageGap;
-      const wrapper=doc.createElement('section');wrapper.dataset.wxFlow=next;
+      const wrapper=createDetachedElement(doc, 'section');wrapper.dataset.wxFlow=next;
       wrapper.setAttribute('style', `${block}display:block;width:100%;max-width:100%;padding-top:${gap}px;`);
       element.replaceWith(wrapper);wrapper.append(element); previous=element;
     }
@@ -282,7 +283,7 @@ function groupChapterCards(root:HTMLElement,block:string):void {
     const kind=node.dataset.wxFlow;
     if(kind==='h1'||kind==='hr'||kind==='footer'){card=null;root.append(node);continue;}
     if(kind==='h2'||!card){
-      card=root.ownerDocument.createElement('section');card.dataset.wxChapterCard='true';
+      card=createDetachedElement(root.ownerDocument, 'section');card.dataset.wxChapterCard='true';
       card.setAttribute('style',`${block}display:block;width:100%;max-width:100%;background-color:#ffffff;border:1px solid #dfe7f1;border-radius:9px;padding:16px 8px;margin-top:${root.childElementCount?18:0}px;`);
       root.append(card);applyInlineStyles(node, { 'padding-top': '0' });
     }

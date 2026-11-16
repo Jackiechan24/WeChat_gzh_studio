@@ -1,11 +1,11 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {JSDOM} from 'jsdom';
-import {DEFAULTS,STYLE_KEYS,BUILTIN_STYLES,normalizeSettings,getStyleSettings,normalizeStyleProfiles,applyStyleSettings,activeStyle,getArticleColors,getPreset,migrateStyleSelection,presetSettingsFor,type PluginData} from '../src/settings';
+import { createTestDocument } from './dom';
+import {DEFAULTS,STYLE_KEYS,BUILTIN_STYLES,normalizeSettings,getStyleSettings,normalizeStyleProfiles,applyStyleSettings,activeStyle,getArticleColors,getPreset,migrateStyleSelection,normalizePluginData,presetSettingsFor,type PluginData} from '../src/settings';
 import {renderArticle} from '../src/renderer';
 import {prepareArticle} from '../src/images';
-const document=new JSDOM().window.document as unknown as Document;
+const document=createTestDocument();
 const dom=(html:string)=>{const e=document.createElement('div');e.innerHTML=html;return e;};
 const render=(text:string,settings={})=>renderArticle(text,{document,sourcePath:'测试.md',settings,resolveImage:async path=>({path,previewUrl:'app://local/image.png'})});
 const fixture='## 章节\n正文 **加粗** ==高亮== [链接](https://example.org)。\n\n### 小节\n- 第一项\n- 第二项\n\n> [!tip] 提示\n> 提示正文\n\n![[图.png]]\n\n|A|B|\n|---|---|\n|1|2|\n|3|4|\n\n```js\nconst x=1;\n```\n\n---';
@@ -198,4 +198,24 @@ test('六套模板在预览和导出中统一正文、章节字号及注释层�
       assert.ok(parseFloat(root.style.paddingLeft) >= 8 && parseFloat(root.style.paddingRight) <= 16);
     }
   }
+});
+
+test('旧数据迁移保留继承与显式空结尾，过滤无效配置', () => {
+  const settings = normalizePluginData({
+    defaults: { theme: 'ink', footer: '**常用结尾**', hideTitle: false },
+    previewMode: 'desktop',
+    articles: { '继承.md': { theme: 'blue' }, '留空.md': { footer: '' }, '损坏.md': [] },
+    articleStyleIds: { '留空.md': 'warm', '损坏.md': 42 },
+    imageUrls: { '有效.png': 'https://example.org/a.png', '损坏.png': [1] },
+    savedStyles: [null, { id: 'user-old', name: ' 旧版风格 ', settings: { theme: 'jade' } }]
+  });
+  assert.equal(settings.previewMode, 'pad');
+  assert.equal(settings.defaultStyleId, 'magazine');
+  assert.deepEqual(settings.articleStyleIds, { '继承.md': 'cards', '留空.md': 'apple' });
+  assert.deepEqual(settings.articles, { '继承.md': { theme: 'blue' }, '留空.md': { footer: '' } });
+  assert.equal(presetSettingsFor(settings, '继承.md').footer, '**常用结尾**');
+  assert.equal(presetSettingsFor(settings, '继承.md').hideTitle, false);
+  assert.equal(presetSettingsFor(settings, '留空.md').footer, '');
+  assert.deepEqual(settings.imageUrls, { '有效.png': 'https://example.org/a.png' });
+  assert.equal(settings.savedStyles[0].name, '旧版风格');
 });

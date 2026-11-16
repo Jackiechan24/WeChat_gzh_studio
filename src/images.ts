@@ -1,3 +1,4 @@
+import { createDetachedElement } from './dom';
 import { Buffer } from 'buffer';
 import createDOMPurify from 'dompurify';
 import type { ArticleImage, ArticleResult } from './renderer';
@@ -35,33 +36,37 @@ export function detectImageMime(bytes: ArrayBuffer): string | null {
 export function imageDataUrl(bytes: ArrayBuffer, mime: string): string {
   return `data:${mime};base64,${Buffer.from(bytes).toString('base64')}`;
 }
-export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  let timer: ReturnType<typeof setTimeout>;
-  return Promise.race([promise, new Promise<never>((_resolve, reject) => { timer = setTimeout(() => reject(new Error('图片读取超时，请重试')), ms); })]).finally(() => clearTimeout(timer));
+export function withTimeout<T>(promise: Promise<T>, ms: number, hostWindow: Window): Promise<T> {
+  let timer: number | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = hostWindow.setTimeout(() => reject(new Error('图片读取超时，请重试')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => hostWindow.clearTimeout(timer));
 }
 
 // PNG/JPEG/GIF retain original bytes (including GIF animation). Other browser-readable
 // formats become PNG for paste compatibility. No image data is written back to the vault.
 export async function normalizeImage(document: Document, bytes: ArrayBuffer, mime: string): Promise<string> {
+  const hostWindow = document.defaultView ?? window;
   let input = bytes;
   if (mime === 'image/svg+xml') {
     const purifier = createDOMPurify(document.defaultView as unknown as Parameters<typeof createDOMPurify>[0]);
     const safe = purifier.sanitize(Buffer.from(bytes).toString('utf8'), {
       USE_PROFILES: { svg: true }, FORBID_TAGS: ['foreignObject', 'image', 'use', 'script', 'style'], FORBID_ATTR: ['href', 'xlink:href']
     });
-    const encoded = Buffer.from(safe, 'utf8'); input = encoded.buffer.slice(encoded.byteOffset, encoded.byteOffset + encoded.byteLength) as ArrayBuffer;
+    const encoded = Buffer.from(safe, 'utf8'); input = encoded.buffer.slice(encoded.byteOffset, encoded.byteOffset + encoded.byteLength);
   }
   const data = imageDataUrl(input, mime);
-  const image = document.createElement('img');
+  const image = createDetachedElement(document, 'img');
   try {
     await withTimeout(new Promise<void>((resolve, reject) => {
       image.onload = () => resolve(); image.onerror = () => reject(new Error('图片文件损坏或格式无法解码'));
       image.src = data;
-    }), 15000);
+    }), 15000, hostWindow);
     if (!image.naturalWidth || !image.naturalHeight) throw new Error('图片尺寸无效');
     if (['image/png', 'image/jpeg', 'image/gif'].includes(mime)) return data;
     if (image.naturalWidth * image.naturalHeight > 64000000) throw new Error('图片尺寸过大，无法转换为 PNG');
-    const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+    const canvas = createDetachedElement(document, 'canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
     const context = canvas.getContext('2d'); if (!context) throw new Error('无法创建图片转换画布');
     context.drawImage(image, 0, 0);
     const png = canvas.toDataURL('image/png'); canvas.width = 0; canvas.height = 0;
@@ -88,10 +93,10 @@ export async function prepareArticle(result: ArticleResult, options: ImageCopyOp
           const match = image.source.match(/^data:(image\/[\w.+-]+);base64,([a-z0-9+/=\r\n]+)$/i);
           if (!match) throw new Error('内嵌图片数据无效');
           const buffer = Buffer.from(match[2], 'base64');
-          binary = { bytes: buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer };
+          binary = { bytes: buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) };
         } else if (image.status === 'external') {
           if (!options.readRemote) throw new Error('无法读取网络图片');
-          binary = await withTimeout(options.readRemote(image.source), 20000);
+          binary = await withTimeout(options.readRemote(image.source), 20000, options.document.defaultView ?? window);
         } else binary = await options.readLocal(image);
         const mime = detectImageMime(binary.bytes);
         if (!mime) throw new Error('文件不是可识别的图片');

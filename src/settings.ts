@@ -30,8 +30,12 @@ export const DEFAULTS: LayoutSettings = {
   listStyle:'dot',orderedStyle:'decimal',listGap:8,listIndent:22,quoteStyle:'soft',tableStyle:'grid',codeTheme:'light',codeFontSize:13,dividerStyle:'line',
   hideTitle:true,numberChapters:true,footer:''
 };
-export function normalizeSettings(value: Partial<LayoutSettings> = {}): LayoutSettings {
-  const s={...DEFAULTS,...value};
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export function normalizeSettings(value?: unknown): LayoutSettings {
+  const s = isRecord(value) ? { ...DEFAULTS, ...value } : DEFAULTS;
   const clamp=(n:unknown,lo:number,hi:number,fallback:number)=>typeof n==='number'&&Number.isFinite(n)?Math.min(hi,Math.max(lo,n)):fallback;
   const pick=<T extends string>(v:unknown,choices:readonly T[],fallback:T):T=>choices.includes(v as T)?v as T:fallback;
   const hex=(v:unknown)=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v:'';
@@ -84,7 +88,7 @@ export function getPreset(id:unknown):LayoutPreset {
   const key=typeof id==='string'?(alias[id]||id):'reader';
   return BUILTIN_STYLES.find(p=>p.id===key)||BUILTIN_STYLES[0];
 }
-export function inferStyleId(raw:Partial<LayoutSettings>={}):string {
+export function inferStyleId(raw?: unknown): string {
   const s=normalizeSettings(raw);
   if(s.composition!=='classic')return ({reading:'reader',bulletin:'bulletin',editorial:'magazine',cards:'cards',journal:'apple',apple:'apple',technical:'technical'} as Record<string,string>)[s.composition]||'reader';
   if(s.codeTheme==='dark')return 'technical';
@@ -93,12 +97,51 @@ export function inferStyleId(raw:Partial<LayoutSettings>={}):string {
   if(s.theme==='blue')return 'cards';
   return 'reader';
 }
-export function migrateStyleSelection(stored:Partial<PluginData>={}):Pick<PluginData,'defaultStyleId'|'articleStyleIds'> {
-  const defaultStyleId=typeof stored.defaultStyleId==='string'?getPreset(stored.defaultStyleId).id:inferStyleId(stored.defaults);
-  const articleStyleIds:Record<string,string>={};
-  for(const [path,settings]of Object.entries(stored.articles||{}))if(settings&&typeof settings==='object')articleStyleIds[path]=inferStyleId({...stored.defaults,...settings});
-  for(const [path,id]of Object.entries(stored.articleStyleIds||{}))if(typeof id==='string')articleStyleIds[path]=getPreset(id).id;
-  return {defaultStyleId,articleStyleIds};
+export function migrateStyleSelection(value?: unknown): Pick<PluginData, 'defaultStyleId' | 'articleStyleIds'> {
+  const stored = isRecord(value) ? value : {};
+  const defaults = isRecord(stored.defaults) ? stored.defaults : {};
+  const defaultStyleId = typeof stored.defaultStyleId === 'string'
+    ? getPreset(stored.defaultStyleId).id
+    : inferStyleId(defaults);
+  const articleStyleIds = new Map<string, string>();
+  if (isRecord(stored.articles)) {
+    for (const [path, settings] of Object.entries(stored.articles)) {
+      if (isRecord(settings)) articleStyleIds.set(path, inferStyleId({ ...defaults, ...settings }));
+    }
+  }
+  if (isRecord(stored.articleStyleIds)) {
+    for (const [path, id] of Object.entries(stored.articleStyleIds)) {
+      if (typeof id === 'string') articleStyleIds.set(path, getPreset(id).id);
+    }
+  }
+  return { defaultStyleId, articleStyleIds: Object.fromEntries(articleStyleIds) };
+}
+
+export function normalizePluginData(value?: unknown): PluginData {
+  const stored = isRecord(value) ? value : {};
+  const articles: [string, Partial<LayoutSettings>][] = [];
+  if (isRecord(stored.articles)) {
+    for (const [path, overrides] of Object.entries(stored.articles)) {
+      if (!isRecord(overrides)) continue;
+      const settings = normalizeSettings(overrides);
+      // Preserve the difference between an inherited option and an explicit override.
+      articles.push([path, Object.fromEntries(Object.entries(settings).filter(([key]) => Object.hasOwn(overrides, key)))]);
+    }
+  }
+  const imageUrls: [string, string][] = [];
+  if (isRecord(stored.imageUrls)) {
+    for (const [path, url] of Object.entries(stored.imageUrls)) {
+      if (typeof url === 'string') imageUrls.push([path, url]);
+    }
+  }
+  return {
+    ...migrateStyleSelection(stored),
+    previewMode: stored.previewMode === 'mobile' ? 'mobile' : 'pad',
+    savedStyles: normalizeStyleProfiles(stored.savedStyles),
+    defaults: normalizeSettings(stored.defaults),
+    articles: Object.fromEntries(articles),
+    imageUrls: Object.fromEntries(imageUrls)
+  };
 }
 export function presetSettingsFor(data:PluginData,path=''):LayoutSettings {
   const content=normalizeSettings({...data.defaults,...data.articles[path]});
@@ -106,13 +149,20 @@ export function presetSettingsFor(data:PluginData,path=''):LayoutSettings {
   return {...getPreset(data.articleStyleIds[path]||data.defaultStyleId).settings,footer:content.footer,hideTitle:content.hideTitle};
 }
 export function normalizeStyleProfiles(value:unknown):StyleProfile[]{
-  if(!Array.isArray(value))return[];
-  const ids=new Set<string>();const result:StyleProfile[]=[];
-  for(const item of value){
-    if(!item||typeof item!=='object'||typeof item.id!=='string'||!/^user-[a-z0-9-]+$/i.test(item.id)||ids.has(item.id)||typeof item.name!=='string'||!item.name.trim()||!item.settings||typeof item.settings!=='object')continue;
-    ids.add(item.id);result.push({id:item.id,name:item.name.trim().slice(0,24),settings:getStyleSettings(normalizeSettings(item.settings))});
+  if (!Array.isArray(value)) return [];
+  const items: unknown[] = value;
+  const ids = new Set<string>();
+  const result: StyleProfile[] = [];
+  for (const item of items) {
+    if (!isRecord(item)) continue;
+    const { id, name, settings } = item;
+    if (typeof id !== 'string' || !/^user-[a-z0-9-]+$/i.test(id) || ids.has(id)) continue;
+    if (typeof name !== 'string' || !name.trim() || !isRecord(settings)) continue;
+    ids.add(id);
+    result.push({ id, name: name.trim().slice(0, 24), settings: getStyleSettings(normalizeSettings(settings)) });
+    if (result.length === 50) break;
   }
-  return result.slice(0,50);
+  return result;
 }
 export function sameStyle(s:LayoutSettings,profile:StyleProfile):boolean{return STYLE_KEYS.every(key=>s[key]===profile.settings[key]);}
 export function activeStyle(s:LayoutSettings,saved:StyleProfile[]=[]):StyleProfile|undefined{return [...saved,...BUILTIN_STYLES].find(p=>sameStyle(s,p));}

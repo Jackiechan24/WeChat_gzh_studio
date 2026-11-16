@@ -1,3 +1,4 @@
+import { createDetachedElement } from './dom';
 import MarkdownIt from 'markdown-it';
 import { applyArticleLayout } from './typography';
 import { countArticleText } from './statistics';
@@ -220,10 +221,10 @@ export async function renderArticle(source: string, options: RenderOptions): Pro
     ALLOW_DATA_ATTR: false,
     RETURN_DOM_FRAGMENT: true
   });
-  const root = doc.createElement('section');
+  const root = createDetachedElement(doc, 'section');
   root.append(sanitize(md.renderer.render(tokens, md.options, {})));
   if (settings.footer.trim()) {
-    const footer = doc.createElement('section');
+    const footer = createDetachedElement(doc, 'section');
     footer.dataset.wxFooter = 'true';
     footer.append(sanitize(md.render(stripComments(settings.footer, warnings))));
     root.append(footer);
@@ -258,7 +259,7 @@ export async function renderArticle(source: string, options: RenderOptions): Pro
     image.removeAttribute('src');
     if (item.previewUrl) image.setAttribute('src', item.previewUrl);
     if (!item.previewUrl) {
-      const placeholder = doc.createElement('p'); placeholder.dataset.wxImage = String(index);
+      const placeholder = createDetachedElement(doc, 'p'); placeholder.dataset.wxImage = String(index);
       placeholder.dataset.wxError = 'true';
       placeholder.textContent = `【图片${item.status === 'unsupported' ? '格式待处理' : '未找到'}：${item.alt}】`;
       image.replaceWith(placeholder);

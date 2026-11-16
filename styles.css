@@ -1,7 +1,6 @@
-.wx-view { --wx-accent:#087f72;padding:0 !important;overflow-y:auto;overflow-x:hidden;background:var(--background-primary);container-type:inline-size;display:flex;flex-direction:column; }
-.wx-view [hidden] { display:none !important; }
-.wx-header { flex-shrink:0;position:sticky;top:0;z-index:10;padding:10px 12px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border); }
-.wx-topbar { display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:34px; }
+.view-content.wx-view { --wx-accent:#087f72;padding:0;overflow-y:auto;overflow-x:hidden;background:var(--background-primary);container-type:inline-size;display:flex;flex-direction:column; }
+.wx-view .wx-header > [hidden] { display:none; }
+.wx-header { display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 10px;flex-shrink:0;position:sticky;top:0;z-index:10;padding:10px 12px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border); }
 .wx-heading { flex:1;min-width:0; }
 .wx-header h2 { margin:0;color:var(--text-normal);font-size:14px;font-weight:650;line-height:1.5; }
 .wx-source { font-size:10px;line-height:1.6;color:var(--text-muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }
@@ -13,7 +12,7 @@
 .wx-header .wx-icon-button { display:inline-flex;justify-content:center;align-items:center;width:28px;padding:0;background:transparent;box-shadow:none;border:0;color:var(--text-muted); }
 .wx-icon-button:hover { background:var(--background-modifier-hover); }
 .wx-icon-button svg,.wx-button-icon svg { width:14px;height:14px; }
-.wx-quickbar { display:flex;margin-top:8px; }
+.wx-quickbar { display:flex;grid-column:1 / -1;gap:6px; }
 .wx-header .wx-style-button { display:flex;align-items:center;gap:7px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);box-shadow:none;color:var(--text-normal); }
 .wx-style-button .wx-button-icon { display:flex;color:var(--wx-accent); }
 .wx-style-button .wx-button-icon:last-child { color:var(--text-muted);margin-left:auto; }
@@ -85,16 +84,13 @@
 .wx-image-list { list-style:none;margin:7px 0 0;padding:0; }
 .wx-image-row { border-top:1px solid var(--background-modifier-border);padding:6px 0;font-size:11px;color:var(--text-muted);overflow-wrap:anywhere; }
 @container (min-width:480px) {
- .wx-header { display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;column-gap:12px; }
- .wx-topbar { display:contents; }
- .wx-heading { grid-column:1;grid-row:1; }
+ .wx-header { grid-template-columns:minmax(0,1fr) auto auto;gap:0 12px; }
  .wx-header-actions { grid-column:3;grid-row:1; }
- .wx-quickbar { grid-column:2;grid-row:1;margin:0; }
+ .wx-quickbar { grid-column:2;grid-row:1; }
 }
 @container (max-width:479px) { .wx-style-button { width:100%; }.wx-style-popover { width:calc(100% - 20px);right:10px; }.wx-header { padding:9px 10px; } }
 @container (max-width:340px) { .wx-preset-grid { gap:6px; }.wx-style-popover { padding:10px; }.wx-header .wx-preset-card { padding:5px; }.wx-preset-card small { display:none; }.wx-preset-meta strong { font-size:11px; }.wx-preset-card p { font-size:9px; }.wx-page { padding-inline:12px; } }
 /* Content helpers stay compact; article typography remains in the export HTML. */
-.wx-quickbar { gap:6px; }
 .wx-header .wx-footer-button { display:flex;align-items:center;justify-content:center;gap:5px;flex-shrink:0;background:transparent;border:1px solid var(--background-modifier-border);box-shadow:none;color:var(--text-muted); }
 .wx-footer-button .wx-button-icon { display:flex; }
 .wx-header .wx-footer-button.is-set { color:var(--wx-accent); }
@@ -121,9 +117,6 @@
 .wx-header .wx-reading-modes button[aria-checked=true] { border-color:var(--wx-accent);color:var(--wx-accent); }
 @container (max-width:479px) { .wx-style-button { flex:1;min-width:0; }.wx-footer-popover,.wx-more-popover { right:10px;max-width:calc(100% - 20px); }.wx-header .wx-footer-button { padding:0 9px; } }
 
-.wx-visually-hidden {
-  position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;
-}
 @container wx-style-choice (max-height:500px) {
   .wx-preset-card small { display:none; }
 }

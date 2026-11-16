@@ -1,8 +1,9 @@
+import { createDetachedElement } from './dom';
 import { DEVICE_PREVIEWS } from './device-preview';
-import { App, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf, type Editor, type MarkdownFileInfo, parseYaml, requestUrl, setIcon } from 'obsidian';
+import { App, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, TFile, WorkspaceLeaf, type Editor, type MarkdownFileInfo, type SettingDefinitionItem, parseYaml, requestUrl, setIcon } from 'obsidian';
 import { prepareArticle, normalizeImage, type PreparedArticle } from './images';
 import { renderArticle, type ArticleResult } from './renderer';
-import { BUILTIN_STYLES, DEFAULTS, normalizeSettings, getArticleColors, normalizeStyleProfiles, getPreset, migrateStyleSelection, presetSettingsFor, type LayoutSettings, type PluginData, type PreviewMode } from './settings';
+import { BUILTIN_STYLES, getArticleColors, getPreset, normalizePluginData, presetSettingsFor, type LayoutSettings, type PluginData, type PreviewMode } from './settings';
 import { buildStylePicker } from './settings-panel';
 import {buildFooterEditor} from './footer-panel';
 import {buildMorePanel} from './more-panel';
@@ -10,35 +11,28 @@ import {buildMorePanel} from './more-panel';
 export const VIEW_TYPE = 'wechat-layout-preview';
 interface SourceSnapshot { path: string; text: string; selection: boolean; metadata: Record<string, unknown> }
 
-async function copyHtml(result: PreparedArticle): Promise<void> {
+async function copyHtml(result: PreparedArticle, hostWindow: Window): Promise<void> {
   try {
-    const electron = require('electron') as { clipboard?: { write: (data: { html: string; text: string }) => void } };
+    const electron = await import('electron');
     if (electron.clipboard) {
       electron.clipboard.write({ html: result.html, text: result.text });
       return;
     }
   } catch { /* Browser clipboard is the fallback when Electron clipboard isn't exposed. */ }
-  await navigator.clipboard.write([new ClipboardItem({
+  await hostWindow.navigator.clipboard.write([new ClipboardItem({
     'text/html': new Blob([result.html], { type: 'text/html' }),
     'text/plain': new Blob([result.text], { type: 'text/plain' })
   })]);
 }
 
 export default class WeChatLayoutPlugin extends Plugin {
-  data: PluginData = { defaultStyleId:'reader',articleStyleIds:{},previewMode: 'pad', savedStyles: [], defaults: { ...DEFAULTS }, articles: {}, imageUrls: {} };
+  data: PluginData = normalizePluginData();
   lastMarkdown: MarkdownView | null = null;
-  private timer: ReturnType<typeof setTimeout> | undefined;
+  private timer: number | undefined;
 
   async onload(): Promise<void> {
-    const stored = await this.loadData();
-    this.data = {
-      ...migrateStyleSelection(stored||{}),
-      previewMode: stored?.previewMode === 'mobile' ? 'mobile' : 'pad',
-      savedStyles: normalizeStyleProfiles(stored?.savedStyles),
-      defaults: normalizeSettings(stored?.defaults),
-      articles: stored?.articles && typeof stored.articles === 'object' ? stored.articles : {},
-      imageUrls: stored?.imageUrls && typeof stored.imageUrls === 'object' ? stored.imageUrls : {}
-    };
+    const stored: unknown = await this.loadData();
+    this.data = normalizePluginData(stored);
     this.lastMarkdown = this.app.workspace.getActiveViewOfType(MarkdownView);
     this.registerView(VIEW_TYPE, leaf => new WeChatPreviewView(leaf, this));
     this.addRibbonIcon('newspaper', '公众号排版预览', () => { void this.openPreview(); });
@@ -82,7 +76,7 @@ export default class WeChatLayoutPlugin extends Plugin {
     this.registerEvent(this.app.vault.on('modify', file => {
       if (file instanceof TFile && file.path === this.lastMarkdown?.file?.path) this.schedule();
     }));
-    this.register(() => { if (this.timer) clearTimeout(this.timer); });
+    this.register(() => window.clearTimeout(this.timer));
   }
 
   metadata(file: TFile, text?: string): Record<string, unknown> {
@@ -112,8 +106,8 @@ export default class WeChatLayoutPlugin extends Plugin {
     return null;
   }
   private schedule(capture = true): void {
-    if (this.timer) clearTimeout(this.timer);
-    this.timer = setTimeout(() => {
+    window.clearTimeout(this.timer);
+    this.timer = window.setTimeout(() => {
       for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE)) {
         const view = leaf.view;
         if (!(view instanceof WeChatPreviewView))continue;
@@ -156,7 +150,7 @@ export class WeChatPreviewView extends ItemView {
   private morePanel!:HTMLElement;
   private moreButton!:HTMLButtonElement;
   private footerState:HTMLElement|null=null;
-  private footerDraft:{path:string|undefined;value:string;timer:ReturnType<typeof setTimeout>}|null=null;
+  private footerDraft: { path: string | undefined; value: string; timer: number; hostWindow: Window } | null = null;
   private footerPending:Promise<void>=Promise.resolve();
   private preview!: HTMLElement;
   private previewLabel!: HTMLElement;
@@ -184,16 +178,15 @@ export class WeChatPreviewView extends ItemView {
     this.disposed = false;
     const root = this.contentEl; root.empty(); root.addClass('wx-view');
     const header = root.createDiv({ cls: 'wx-header' });
-    const top = header.createDiv({ cls: 'wx-topbar' });
-    const heading = top.createDiv({ cls: 'wx-heading' });
+    const heading = header.createDiv({ cls: 'wx-heading' });
     heading.createEl('h2', { text: '公众号排版' });
     this.sourceLabel = heading.createDiv({ cls: 'wx-source' });
-    const actions = top.createDiv({ cls: 'wx-header-actions' });
+    const actions = header.createDiv({ cls: 'wx-header-actions' });
     this.copyButton = actions.createEl('button', { text: '复制正文', cls: 'mod-cta wx-primary' });
     this.copyButton.onclick = () => { void this.copy(); };
     const more = this.moreButton=actions.createEl('button', { cls: 'wx-icon-button' });
     setIcon(more, 'ellipsis');
-    more.createSpan({ cls: 'wx-visually-hidden', text: '更多操作' });
+    more.setAttribute('aria-label', '更多操作');
     more.setAttribute('aria-haspopup','menu');more.setAttribute('aria-expanded','false');more.onclick=()=>this.toggleMore(this.morePanel.hidden);
     this.toolbar = header.createDiv({ cls: 'wx-quickbar' });
     this.stylePanel=header.createDiv({cls:'wx-style-popover'});
@@ -301,12 +294,16 @@ export class WeChatPreviewView extends ItemView {
     });
   }
   private queueFooter(value:string,path=this.source?.path):void {
-    if(this.footerDraft)clearTimeout(this.footerDraft.timer);
-    this.footerDraft={value,path,timer:setTimeout(()=>{void this.flushFooter();},300)};this.footerState?.setText('正在保存…');
+    const previous = this.footerDraft;
+    previous?.hostWindow.clearTimeout(previous.timer);
+    const hostWindow = this.contentEl.win;
+    const timer = hostWindow.setTimeout(() => { void this.flushFooter(); }, 300);
+    this.footerDraft = { value, path, timer, hostWindow };
+    this.footerState?.setText('正在保存…');
   }
   private async flushFooter():Promise<void> {
     const draft=this.footerDraft;
-    if(draft){this.footerDraft=null;clearTimeout(draft.timer);this.footerPending=this.footerPending.then(()=>this.saveFooter(draft.value,draft.path));}
+    if(draft){this.footerDraft=null;draft.hostWindow.clearTimeout(draft.timer);this.footerPending=this.footerPending.then(()=>this.saveFooter(draft.value,draft.path));}
     await this.footerPending;
   }
   private async saveFooter(value:string,path?:string):Promise<void> {
@@ -372,7 +369,7 @@ export class WeChatPreviewView extends ItemView {
     });
     const close = head.createEl('button', { cls: 'wx-icon-button' });
     setIcon(close, 'x');
-    close.createSpan({ cls: 'wx-visually-hidden', text: '关闭风格选择' });
+    close.setAttribute('aria-label', '关闭风格选择');
     close.onclick = () => this.toggleStylePicker(false);
     const body=this.stylePanel.createDiv({cls:'wx-picker-body'});
     const path=this.source?.path;
@@ -421,8 +418,8 @@ export class WeChatPreviewView extends ItemView {
       if (revision !== this.revision || this.disposed) return;
       this.result = result;
       const doc = this.contentEl.ownerDocument;
-      const style = doc.createElement('style'); style.textContent = ':host{display:block;color-scheme:light}a{cursor:pointer}.wx-load-error{outline:2px solid #b45309;min-height:80px}';
-      const body = doc.createElement('div');
+      const style = createDetachedElement(doc, 'style'); style.textContent = ':host{display:block;color-scheme:light}a{cursor:pointer}.wx-load-error{outline:2px solid #b45309;min-height:80px}';
+      const body = createDetachedElement(doc, 'div');
       body.append(result.previewRoot.cloneNode(true));
       this.shadow.replaceChildren(style, body);
       body.addEventListener('click', event => { if ((event.target as Element).closest('a')) event.preventDefault(); });
@@ -505,7 +502,7 @@ export class WeChatPreviewView extends ItemView {
       const prepared = await this.prepare(result);
       // Keep a single HTML+text clipboard item: adding image/png would cause some
       // editors to prefer a single bitmap and discard the rest of the article.
-      await copyHtml(prepared);
+      await copyHtml(prepared, this.contentEl.win);
       new Notice(`已复制完整正文${prepared.imageCount ? `和 ${prepared.imageCount} 张图片` : ''}，直接粘贴到公众号编辑器`);
     } catch (error) {
       new Notice(error instanceof Error ? error.message : '图文复制失败，请重试', 12000);
@@ -528,8 +525,8 @@ export class WeChatPreviewView extends ItemView {
     const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
     const html = `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(r.title)}</title></head><body style="box-sizing:content-box;max-width:677px;margin:24px auto;padding:0 16px;background:#fff">${prepared.html}</body></html>`;
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
-    const link = doc.createElement('a'); link.href = url; link.download = `${r.title.replace(/[\\/:*?"<>|]/g, '_').slice(0, 80)}.html`;
-    doc.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+    const link = createDetachedElement(doc, 'a'); link.href = url; link.download = `${r.title.replace(/[\\/:*?"<>|]/g, '_').slice(0, 80)}.html`;
+    doc.body.append(link); link.click(); link.remove(); this.contentEl.win.setTimeout(() => URL.revokeObjectURL(url), 30000);
     new Notice(`HTML 已导出，包含 ${prepared.imageCount} 张内嵌图片`);
     } catch (error) { new Notice(error instanceof Error ? error.message : '图文导出失败', 12000); }
     finally { this.copying = false; if (!this.disposed) { this.syncStyleControls(); this.copyButton.setText('复制正文'); this.copyButton.disabled = !this.result; } }
@@ -538,17 +535,36 @@ export class WeChatPreviewView extends ItemView {
 
 class LayoutSettingsTab extends PluginSettingTab {
   constructor(app:App,private plugin:WeChatLayoutPlugin){super(app,plugin);}
-  display():void {
-    this.containerEl.empty();
-    new Setting(this.containerEl).setName('公众号排版').setHeading();
-    this.containerEl.createEl('p',{text:'选一套完整风格，直接复制图文。每篇文章会记住所选风格，不需要调整排版参数。'});
-    new Setting(this.containerEl).setName('常用风格').setDesc('没有单独选择风格的文章，将自动使用这一套。').addDropdown(dropdown=>{
-      for(const profile of BUILTIN_STYLES)dropdown.addOption(profile.id,profile.name);
-      dropdown.setValue(this.plugin.data.defaultStyleId).onChange(async id=>{this.plugin.data.defaultStyleId=getPreset(id).id;await this.plugin.persist();this.refreshPreviews();});
-    });
-    new Setting(this.containerEl).setName('固定结尾（可选）').setDesc('例如署名或关注语，支持 Markdown。留空即可，不影响选择风格。').addTextArea(input=>{
-      input.setValue(this.plugin.data.defaults.footer).setPlaceholder('留空，不添加结尾').onChange(async value=>{this.plugin.data.defaults.footer=value;await this.plugin.persist();this.refreshPreviews();});
-    });
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    return [
+      {
+        name: '常用风格',
+        desc: '没有单独选择风格的文章，将自动使用这一套。',
+        render: setting => {
+          setting.addDropdown(dropdown => {
+            for (const preset of BUILTIN_STYLES) dropdown.addOption(preset.id, preset.name);
+            dropdown.setValue(this.plugin.data.defaultStyleId).onChange(async id => {
+              this.plugin.data.defaultStyleId = getPreset(id).id;
+              await this.plugin.persist();
+              this.refreshPreviews();
+            });
+          });
+        },
+      },
+      {
+        name: '固定结尾（可选）',
+        desc: '例如署名或关注语，支持 Markdown。留空即可不添加。',
+        render: setting => {
+          setting.addTextArea(input => {
+            input.setValue(this.plugin.data.defaults.footer).setPlaceholder('留空，不添加结尾').onChange(async value => {
+              this.plugin.data.defaults.footer = value;
+              await this.plugin.persist();
+              this.refreshPreviews();
+            });
+          });
+        }
+      }
+    ];
   }
   private refreshPreviews():void {for(const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE))if(leaf.view instanceof WeChatPreviewView)void leaf.view.refresh(false);}
 }

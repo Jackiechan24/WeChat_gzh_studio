@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { JSDOM } from 'jsdom';
+import { createTestDocument } from './dom';
 import { renderArticle } from '../src/renderer';
 import { prepareArticle } from '../src/images';
-const document=new JSDOM().window.document as unknown as Document;
+const document=createTestDocument();
 const dom=(html:string)=>{const e=document.createElement('div');e.innerHTML=html;return e;};
 const fixture='# 文章标题\n\n导语 **重要结论**。\n\n## 章节\n正文 ==高亮==。\n\n### 小节\n- 第一项\n  - 嵌套项\n- 第二项\n\n> [!tip] 提示\n> 提示正文\n\n![示意](图.png)\n\n|类型|内容|\n|---|---|\n|表格|信息|\n\n```js\nconst value = 42;\n```\n\n----';
 const render=(source:string,settings={})=>renderArticle(source,{document,sourcePath:'测试.md',settings,resolveImage:async p=>({path:p,previewUrl:'app://local/image.png'})});
