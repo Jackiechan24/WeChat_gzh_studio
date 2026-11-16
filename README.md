@@ -1,6 +1,6 @@
 # 公众号排版 WeChat Layout
 
-Obsidian 桌面插件 v0.9.0。把笔记或选区连同图片排成公众号正文。使用流程只有：**选择风格 → 复制正文 → 粘贴**。
+Obsidian 桌面插件 v0.9.1。把笔记或选区连同图片排成公众号正文。使用流程只有：**选择风格 → 复制正文 → 粘贴**。
 
 ## 使用
 
@@ -72,7 +72,7 @@ Obsidian 桌面插件 v0.9.0。把笔记或选区连同图片排成公众号正�
 
 ## 安装与升级
 
-从 GitHub 的 Releases 下载并解压 `wechat-layout-0.9.0.zip`，将 `wechat-layout` 文件夹放入库的 `.obsidian/plugins/`，启用插件。升级时替换 main.js、manifest.json 和 styles.css，**保留 data.json**，然后重载插件。
+从 GitHub 的 Releases 下载并解压 `wechat-layout-0.9.1.zip`，将 `wechat-layout` 文件夹放入库的 `.obsidian/plugins/`，启用插件。升级时替换 main.js、manifest.json 和 styles.css，**保留 data.json**，然后重载插件。
 
 升级旧版时，根据原配色/字体映射为对应成品风格；原参数和个人预设仍保留在数据中，但不再参与成品排版，也不显示自定义入口。原“温暖手记”会自动映射为“苹果极简”。已有固定结尾和正文标题导出规则继续保留。新文章默认使用常用风格。
 
