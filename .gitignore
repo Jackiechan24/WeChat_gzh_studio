@@ -9,7 +9,9 @@ apple-reference.*
 apple-overview*.css
 
 # Local development files and test outputs
-/assets/
+/assets/*
+!/assets/phone-frame.png
+!/assets/ipad-frame.png
 /preview-*.png
 /layout-test.html
 /preset-gallery.html

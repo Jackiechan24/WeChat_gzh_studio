@@ -154,6 +154,7 @@ export class WeChatPreviewView extends ItemView {
   private footerPending:Promise<void>=Promise.resolve();
   private preview!: HTMLElement;
   private previewLabel!: HTMLElement;
+  private deviceFrame!: HTMLImageElement;
   private deviceReader!: HTMLElement;
   private deviceResizeObserver?: ResizeObserver;
   private title!: HTMLElement;
@@ -216,6 +217,10 @@ export class WeChatPreviewView extends ItemView {
     this.deviceReader = screen.createDiv({
       cls: 'wx-device-reader',
       attr: { tabindex: '0', role: 'region' },
+    });
+    this.deviceFrame = device.createEl('img', {
+      cls: 'wx-device-bezel',
+      attr: { alt: '', 'aria-hidden': 'true', draggable: 'false' }
     });
     const page = this.deviceReader.createDiv({ cls: 'wx-page' });
     this.title=page.createEl('h1',{cls:'wx-article-title'});
@@ -330,6 +335,7 @@ export class WeChatPreviewView extends ItemView {
     const reader = this.deviceReader;
     const position = reader.scrollTop / Math.max(1, reader.scrollHeight - reader.clientHeight);
     this.contentEl.dataset.previewMode = mode;
+    if (this.deviceFrame.getAttribute('src') !== device.frame) this.deviceFrame.src = device.frame;
     this.previewLabel.setText(`${device.label}预览`);
     reader.setAttribute('aria-label', `${device.label}公众号正文预览`);
     this.fitDevicePreview();
