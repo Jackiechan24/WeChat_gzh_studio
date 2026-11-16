@@ -2,7 +2,7 @@ import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 const dir = 'release/wechat-layout';
 await mkdir(dir, { recursive: true });
-for (const name of ['main.js', 'manifest.json', 'styles.css', 'README.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md']) await copyFile(name, `${dir}/${name}`);
+for (const name of ['main.js', 'manifest.json', 'styles.css', 'README.md', 'README.zh-CN.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md']) await copyFile(name, `${dir}/${name}`);
 const manifest = JSON.parse((await readFile('manifest.json', 'utf8')).replace(/^\uFEFF/, ''));
 let versions = {};
 try { versions = JSON.parse((await readFile('versions.json', 'utf8')).replace(/^\uFEFF/, '')); } catch {}

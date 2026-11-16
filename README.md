@@ -1,107 +1,37 @@
-# 公众号排版 WeChat Layout
+# WeChat Layout
 
-Obsidian 桌面插件 v0.9.1。把笔记或选区连同图片排成公众号正文。使用流程只有：**选择风格 → 复制正文 → 粘贴**。
+[简体中文](README.zh-CN.md)
 
-## 使用
+WeChat Layout is an Obsidian desktop plugin that formats Markdown notes for the WeChat Official Accounts editor. Pick a complete layout, preview the article on a phone or iPad, and copy the formatted body with its images in one step.
 
-1. 打开笔记，点击报纸图标或运行“打开公众号排版预览”。
-2. 点击工具栏的风格名称，从六张预览卡片中选择一套。选择后整套生效、自动收起，并记住此文的选择。
-3. 点击“复制正文”，在公众号正文编辑区普通粘贴 `Ctrl+V`，等待图片处理完成。
-4. 命令“导出完整 HTML”可以输出含图片的完整文件。
+## Use the plugin
 
-“复制正文”主按钮已放大至至少 120×40px。风格选择器在同一弹窗内显示六套风格，较矮窗口会缩小缩略图或收起说明，以便直接选择。
+1. Open a note and click the newspaper icon or run `打开公众号排版预览` (Open WeChat preview) from the command palette. Run `排版当前选区` (Format current selection) to work with a selection.
+2. Choose one of six presets. Each preset styles headings, paragraphs, lists, quotes, images, tables, and code together. Open `结尾` (Ending) to add an optional reusable Markdown ending.
+3. Click `复制正文` (Copy body), then paste into the article body in the WeChat editor. The copy includes supported vault and remote images, embedded directly in the rich text. If an image cannot be prepared, the plugin reports the problem and leaves the clipboard as it was.
 
-不需要调整字体、字号、行距、间距、配色或保存个人预设。风格卡片通过与正文相同的渲染管线生成缩略图。
+The More menu switches between phone and iPad previews. The preview, rich-text copy, and HTML export use the same inline article styles. Run `导出完整 HTML` (Export complete HTML) to save a standalone file with embedded images. The preview also lists the image names and shows a reference word count.
 
-## 六套成品风格
+## Installation
 
-| 风格 | 完整排版特征 | 适合内容 |
-| --- | --- | --- |
-| 清爽阅读 | 白底、青绿细竖线、无衬线正文、舒展留白、轻引用 | 日常文章、观点分享 |
-| 黑白杂志 | 独立章号、居中衬线章节、黑白双线、居中引言、宽松节奏 | 专栏长文、深度观点 |
-| 知识卡片 | 浅灰蓝背景、章节白卡分组、蓝色章头、方点与圈号、信息表格 | 知识教程、方法清单 |
-| 苹果极简 | 大标题与系统字体、黑灰层次、蓝色链接、宽松留白、柔白圆角图块 | 产品介绍、灵感分享 |
-| 技术文档 | 深色章头、等宽序号、紧凑步骤、暗色代码、深色表头、锐利图框 | 技术笔记、操作指南 |
-| 红黑简报 | 红底章号、黑色正文、红色下划线章节、紧凑要点、红色表头 | 工作简报、观点清单 |
+Requires Obsidian 1.15.0 or later on desktop.
 
-每套风格同时定义正文、标题层级、强调、图片、列表、引用、表格和代码，不只更换颜色。知识卡片会将每个章节及其正文、图片、引用分在同一张卡片内。杂志风能识别已有章节编号，避免再添加一份。
+For manual installation, download `main.js`, `manifest.json`, and `styles.css` from the [latest GitHub release](https://github.com/Jackiechan24/WeChat_gzh_studio/releases/latest). Put all three files in `<vault>/.obsidian/plugins/wechat-layout/`, then enable WeChat Layout in Obsidian's Community plugins settings. To upgrade manually, replace those three files, keep `data.json`, and reload the plugin.
 
-“更多 → 将当前风格设为常用”可以让其他未选择风格的文章直接使用它。全局设置只保留“常用风格”和可选的 Markdown 固定结尾。
+## Clipboard and network access
 
-## 标题层级与固定结尾
+The plugin writes to the system clipboard only when you click Copy body or run `复制公众号正文` (Copy WeChat article). It writes HTML and plain text generated from the current article. It never reads the clipboard, monitors changes to it, or uploads its contents.
 
-六套风格的正文、导语和列表文字统一为 16px，行高为 1.75 倍（28px），字间距为 0–0.5px。正文左右留白为每侧 12px，知识卡片使用 8px 外侧留白和 8px 卡片内边距。
+Formatting, vault image processing, and file export run locally. HTTP and HTTPS images are fetched from their original hosts for preview, copying, and export. The plugin has no account service, telemetry, or note upload service.
 
-章节标题 H1、H2 分别为 20px、19px，小标题 H3、H4 分别为 17px、16px，均加粗。H5、H6 分别为 15px、14px。预览顶部的文章标题为 20px。
-
-脚注内容为 13px，脚注编号为 12px。段落以「图注：」「备注：」「来源：」等标记开头时，按 13px 注释排版。
-
-工具栏“结尾”打开独立模块：支持 Markdown、自动保存、设为常用、恢复常用。修改仅用于此文；设为常用供其他未单独设置结尾的文章使用。此文留空可不添加常用结尾。立即关闭、切换风格/文章、复制或导出时都会先保存输入。
-
-正文中的结尾也独立渲染并跟随所选风格，不把编辑界面标签复制进去。正文中的未闭合代码不会吞掉结尾，结尾标题不会取代文章标题，结尾图片随正文完整复制。
-
-## 更多菜单
-
-- 文章：重新读取笔记 / 恢复全文预览、固定结尾。
-- 风格：设为常用风格、恢复常用风格。
-- 设备预览：手机 / iPad，两项并排并标注当前选择。
-
-菜单支持方向键与 Escape，图标、文字、状态分别占位。标题复制按钮与命令已移除，完整 HTML 导出位于 Obsidian 命令面板。
-
-## 完整图文复制
-
-- 支持库内 `![[图片.png]]`、`![[图片.png|600]]`、普通 Markdown 图片及网络图片。
-- 复制与 HTML 导出会读取全部图片，将字节嵌入富文本，不需要图床、图片地址配置或公众号 API。
-- PNG、JPEG、GIF 保留原始字节；可解码的 WebP、AVIF、BMP、SVG 转为 PNG。重复图片只读取一次，各引用位置均保留。
-- 缺失或下载失败的图片会阻止不完整复制，并保留上一次剪贴板内容。
-- 不修改笔记和附件，不把图片字节保存在插件设置中。网络图片在复制时从其原服务器下载。
-
-展开图片列表即可查看各张图片的名称。
-
-## 预览、导出与统计
-
-正文预览和最终复制使用同一份内联排版，只替换图片资源。标题、章节容器、背景、图片和间距不会分别依赖预览界面 CSS。在“更多 → 设备预览”中切换手机或 iPad。文章在对应设备屏幕内展示，长文可用滚轮、触控板或键盘滚动。外框随面板宽度和高度适配，设备外框由插件样式绘制。原“电脑”选项自动迁移到 iPad。
-
-预览面板底部显示文章统计及图片列表。状态栏分别显示公众号参考字数和不计空白的字符数。连续英文字母与连续数字分别计一组。静态列表和章节序号是可见文字，会参与统计；最终字数以公众号显示为准。
-
-## Obsidian 内容支持
-
-支持 H1–H6、加粗、斜体、删除线、多级列表、任务清单、引用、表格、代码、脚注、链接、双链别名、高亮和静态 Callout。属性、注释与块 ID 不导出。标题优先级：title 属性 → 首个 H1 → 文件名；默认将重复的正文标题移除，选区保留 H1。
-
-笔记/块/PDF/音视频/Canvas 嵌入暂不展开；Mermaid、Dataview 与数学公式保留源码并提示。原始 HTML 按文字显示，仅兼容 br 换行。
-
-## 安装与升级
-
-从 GitHub 的 Releases 下载并解压 `wechat-layout-0.9.1.zip`，将 `wechat-layout` 文件夹放入库的 `.obsidian/plugins/`，启用插件。升级时替换 main.js、manifest.json 和 styles.css，**保留 data.json**，然后重载插件。
-
-升级旧版时，根据原配色/字体映射为对应成品风格；原参数和个人预设仍保留在数据中，但不再参与成品排版，也不显示自定义入口。原“温暖手记”会自动映射为“苹果极简”。已有固定结尾和正文标题导出规则继续保留。新文章默认使用常用风格。
-
-支持 Obsidian 1.15.0 及以上桌面版。安装包已包含运行依赖。
-
-## 开发
+## Build from source
 
 ```sh
 npm ci
 npm test
-npm run check
-npm run package
+npm run build
 ```
 
-- src/settings.ts：完整风格定义、选择持久化和旧数据兼容。
-- src/settings-panel.ts：仅含六张风格卡片的选择器。
-- src/typography.ts：共享内联排版与章节卡片分组。
-- src/renderer.ts：Markdown 和 Obsidian 语法转换。
-- src/images.ts：图片读取、转换与完整内嵌。
-- src/main.ts：Obsidian 预览、风格选择、剪贴板与导出。
-- src/footer-panel.ts：固定结尾的独立编辑模块。
-- src/more-panel.ts：分组菜单和阅读宽度切换。
+Version tags trigger [GitHub Actions](.github/workflows/release.yml) to test the source, build and attest the three plugin files, and publish them as release assets.
 
-
-
-## 隐私与网络
-
-笔记排版、库内图片处理、剪贴板和文件导出都在本机完成。含 HTTP 或 HTTPS 图片的笔记在预览时会向对应图片服务器请求资源，复制或导出时会从同一来源下载图片，以将其嵌入正文。插件本身没有账户服务、遥测或上传笔记的服务。
-
-## 许可
-
-源代码采用 MIT 许可证，所含依赖的许可证见 [第三方许可](THIRD-PARTY-NOTICES.md)。
+Licensed under [MIT](LICENSE). Bundled dependency licenses are documented in [Third-Party Notices](THIRD-PARTY-NOTICES.md).

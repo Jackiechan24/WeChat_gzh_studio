@@ -489,10 +489,14 @@ export class WeChatPreviewView extends ItemView {
   }
   async copy(): Promise<void> {
     if (this.copying) return;
-    await this.flushFooter();this.toggleFooter(false,false);this.toggleMore(false,false);this.toggleStylePicker(false,false);
     this.copying = true;
-    this.copyButton.disabled = true;this.styleButton.disabled=true;
+    this.copyButton.disabled = true;
+    this.styleButton.disabled = true;
     try {
+      await this.flushFooter();
+      this.toggleFooter(false, false);
+      this.toggleMore(false, false);
+      this.toggleStylePicker(false, false);
       await this.refresh(!this.source?.selection);
       await this.pending;
       const result = this.result;
