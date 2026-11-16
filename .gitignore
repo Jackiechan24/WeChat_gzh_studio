@@ -1,0 +1,24 @@
+node_modules/
+release/
+main.js
+.dev-vault/
+scripts/debug.*
+
+scripts/.qa-settings-backup.json
+apple-reference.*
+apple-overview*.css
+
+# Local development files and test outputs
+/assets/
+/preview-*.png
+/layout-test.html
+/preset-gallery.html
+/QA*.md
+/scripts/*
+!/scripts/build.mjs
+!/scripts/package.mjs
+/examples/*
+!/examples/排版示意.png
+/data.json
+.env*
+.obsidian/
