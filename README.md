@@ -17,7 +17,7 @@ Choose one of six ready-made layouts. Each preset styles headings, paragraphs, i
 | 技术文档 · Technical Docs | Dark chapter headers, compact steps, and dark code blocks | How-to guides and engineering notes |
 | 红黑简报 · Red and Black Brief | Red chapter numbers and rules with a compact text layout | Briefings and summaries |
 
-<img src="docs/images/preset-picker.png" width="420" alt="WeChat Layout preset picker showing the same sample in six layouts">
+<img src="docs/images/preset-picker.png" width="440" alt="WeChat Layout preset picker showing the same sample in six layouts">
 
 ## Typesetting and publishing features
 
@@ -29,8 +29,14 @@ Choose one of six ready-made layouts. Each preset styles headings, paragraphs, i
 
 ### Phone and iPad previews
 
-<img src="docs/images/phone-preview.png" width="222" alt="Phone preview of a WeChat article with a three-column table">
-<img src="docs/images/ipad-preview.png" width="390" alt="The same WeChat article and table in the iPad preview">
+**Phone · Knowledge Cards**
+
+<img src="docs/images/phone-preview.png" width="760" alt="The Knowledge Cards layout in the phone preview">
+
+**iPad · Apple Minimal**
+
+<img src="docs/images/ipad-preview.png" width="760" alt="The Apple Minimal layout in the iPad preview">
+
 
 ## Install
 

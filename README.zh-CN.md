@@ -17,7 +17,7 @@ WeChat Layout 是面向公众号作者的 Obsidian 桌面插件。打开笔记�
 | 技术文档 | 深色章头、紧凑步骤、暗色代码块 | 技术笔记、操作指南 |
 | 红黑简报 | 红底章号、红色章节下划线、紧凑正文 | 工作简报、总结复盘 |
 
-<img src="docs/images/preset-picker.png" width="420" alt="六套成品风格使用同一段示例内容，每套有独立的标题和引用样式">
+<img src="docs/images/preset-picker.png" width="440" alt="六套成品风格使用同一段示例内容，每套有独立的标题和引用样式">
 
 ## 排版与发布功能
 
@@ -29,8 +29,14 @@ WeChat Layout 是面向公众号作者的 Obsidian 桌面插件。打开笔记�
 
 ### 手机与 iPad 预览
 
-<img src="docs/images/phone-preview.png" width="222" alt="手机预览中显示带三列表格的公众号文章">
-<img src="docs/images/ipad-preview.png" width="390" alt="同一篇公众号文章在 iPad 中的表格排版">
+**手机 · 知识卡片**
+
+<img src="docs/images/phone-preview.png" width="760" alt="手机预览中的知识卡片风格，显示蓝色章头和表格">
+
+**iPad · 苹果极简**
+
+<img src="docs/images/ipad-preview.png" width="760" alt="iPad 预览中的苹果极简风格，显示黑灰标题和宽版表格">
+
 
 ## 安装
 
