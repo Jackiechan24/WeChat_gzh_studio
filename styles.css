@@ -62,26 +62,26 @@
   max-width:calc(100% - 32px);border:1px solid var(--wx-ui-border);border-radius:12px;
   background:var(--wx-ui-surface);color:var(--wx-ui-text);box-shadow:var(--wx-ui-shadow);
 }
-.wx-style-popover { width:480px;height:min(600px,var(--wx-picker-height,70vh));padding:12px;display:flex;flex-direction:column;overflow:hidden;container:wx-style-choice / size; }
+.wx-style-popover { width:520px;height:min(660px,var(--wx-picker-height,70vh));padding:12px;display:flex;flex-direction:column;overflow:hidden;container:wx-style-choice / size; }
 .wx-picker-head { display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;padding-bottom:10px; }
 .wx-picker-head strong { font-size:13px;line-height:20px;font-weight:600; }
 .wx-picker-body { flex:1;min-height:0; }
 .wx-preset-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));height:100%;box-sizing:border-box;gap:10px;padding:2px; }
 .wx-view .wx-header .wx-preset-card {
   display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:relative;
-  min-width:0;min-height:0;height:auto;padding:8px;text-align:left;white-space:normal;
+  min-width:0;min-height:0;height:auto;padding:10px;text-align:left;gap:8px;white-space:normal;
   border:1px solid var(--wx-ui-border);border-radius:10px;box-shadow:none;
 }
 .wx-view .wx-header .wx-preset-card:hover { background:var(--wx-ui-muted);border-color:var(--wx-ui-secondary); }
 .wx-view .wx-header .wx-preset-card[aria-pressed=true] { background:var(--wx-ui-muted);border-color:var(--wx-ui-primary);box-shadow:0 0 0 1px var(--wx-ui-primary); }
 .wx-preset-thumb { position:relative;flex:1;min-height:0;overflow:hidden;border-radius:5px;background:#fff;border:1px solid #ececee;pointer-events:none; }
-.wx-preset-canvas { position:absolute;left:8px;top:8px;width:343px;transform:scale(.48);transform-origin:top left;color-scheme:light; }
-.wx-preset-meta { display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:6px; }
-.wx-preset-meta strong { font-size:12px;line-height:20px;font-weight:600; }
-.wx-preset-check { display:flex;align-items:center;justify-content:center;width:16px;height:16px;color:var(--wx-ui-primary); }
+.wx-preset-canvas { position:absolute;left:8px;top:8px;width:320px;transform:scale(.48);transform-origin:top left;color-scheme:light; }
+.wx-preset-meta { display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:20px;flex-shrink:0; }
+.wx-preset-meta strong { font-size:13px;line-height:20px;font-weight:600; }
+.wx-preset-check { display:flex;align-items:center;justify-content:center;width:18px;height:18px;flex-shrink:0;visibility:hidden;border-radius:50%;background:var(--wx-ui-primary);color:var(--wx-ui-on-primary); }
+.wx-preset-card[aria-pressed=true] .wx-preset-check { visibility:visible; }
 .wx-preset-check svg { width:14px;height:14px; }
-.wx-preset-card p { margin:2px 0 0;font-size:11px;line-height:16px;color:var(--wx-ui-secondary); }
-.wx-preset-card small { display:block;margin-top:2px;font-size:10px;line-height:16px;color:var(--wx-ui-secondary); }
+.wx-preset-card .wx-preset-caption { flex-shrink:0;margin:0;font-size:11px;line-height:16px;color:var(--wx-ui-secondary);white-space:nowrap; }
 .wx-device-stage { flex:1 0 auto;padding:12px; }
 .wx-page-label { font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:8px;line-height:1.6; }
 .wx-device-frame {
@@ -154,14 +154,11 @@
   .wx-style-popover,.wx-footer-popover,.wx-more-popover { right:10px;max-width:calc(100% - 20px); }
   .wx-preset-grid { gap:6px; }
   .wx-view .wx-header .wx-preset-card { padding:6px; }
-  .wx-preset-card small { display:none; }
   .wx-preview-info { padding:8px 10px; }
 }
-@container wx-style-choice (max-height:500px) { .wx-preset-card small { display:none; } }
-@container wx-style-choice (max-height:340px) { .wx-preset-card p { display:none; } }
+@container wx-style-choice (max-height:420px) { .wx-preset-caption { display:none; } }
 @container wx-style-choice (max-height:190px) {
   .wx-preset-thumb { display:none; }
-  .wx-preset-meta { margin-top:0; }
   .wx-preset-grid { gap:4px; }
   .wx-view .wx-header .wx-preset-card { justify-content:center;padding-block:2px; }
 }
