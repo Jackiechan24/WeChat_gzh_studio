@@ -25,7 +25,7 @@ Choose one of six ready-made layouts. Each preset styles headings, paragraphs, i
 - **Copy text and images together.** Supported Obsidian attachments, Markdown images, and remote images are embedded in the copied HTML. If an image is unavailable, you get a message identifying it before the clipboard is written.
 - **Preview at phone and iPad widths.** Check line breaks, image proportions, and tables. Preview, copy, and HTML export share the article's inline styles.
 - **Reuse your layout and ending.** Set a default preset and keep a different choice per article. Save a Markdown sign-off as your default ending or edit it for the current article.
-- **Check or export the article.** See a reference word count and an expandable image list. Use `导出完整 HTML` (Export complete HTML) to save a standalone file with its images.
+- **Check or export the article.** See reference word and character counts, estimated reading time, and chapter, code block, and image totals. Use `导出完整 HTML` (Export complete HTML) to save a standalone file with its images.
 
 ### Phone and iPad previews
 
@@ -48,7 +48,7 @@ Requires **Obsidian 1.15.0 or later on desktop**.
 ## Use
 
 1. Open a note and run **打开公众号排版预览** (Open WeChat preview) from the command palette.
-2. Choose a layout. Use **更多 → 设备预览** (More → Device preview) to switch between phone and iPad, or **结尾** (Ending) to add a sign-off.
+2. Choose a layout. Use **更多 → 设备预览** (More → Device preview) to switch between phone and iPad, or **固定结尾** (Ending) to add a sign-off.
 3. Click **复制正文** (Copy body) and paste into the body field in the WeChat editor. Enter the article title in WeChat's title field.
 
 To format an excerpt, select text in the Markdown editor and run **排版当前选区** (Format current selection) while the editor has focus.

@@ -160,7 +160,6 @@ export class WeChatPreviewView extends ItemView {
   private title!: HTMLElement;
   private previewInfo!: HTMLElement;
   private status!: HTMLElement;
-  private checks!: HTMLElement;
   private sourceLabel!: HTMLElement;
   private copyButton!: HTMLButtonElement;
   private shadow!: ShadowRoot;
@@ -181,7 +180,7 @@ export class WeChatPreviewView extends ItemView {
     const header = root.createDiv({ cls: 'wx-header' });
     const heading = header.createDiv({ cls: 'wx-heading' });
     const titleRow = heading.createDiv({ cls: 'wx-heading-row' });
-    titleRow.createEl('h2', { text: '公众号排版' });
+    titleRow.createDiv({ cls: 'wx-heading-title', text: '公众号排版' });
     titleRow.createSpan({ cls: 'wx-version', text: `v${this.plugin.manifest.version}` });
     this.sourceLabel = heading.createDiv({ cls: 'wx-source' });
     const actions = header.createDiv({ cls: 'wx-header-actions' });
@@ -231,7 +230,6 @@ export class WeChatPreviewView extends ItemView {
     this.shadow = this.preview.attachShadow({ mode: 'open' });
     this.previewInfo = root.createEl('footer', { cls: 'wx-preview-info' });
     this.status = this.previewInfo.createDiv({ cls: 'wx-status' });
-    this.checks = this.previewInfo.createDiv({ cls: 'wx-checks' });
     this.applyPreviewMode();
     this.deviceResizeObserver = new ResizeObserver(() => this.fitDevicePreview());
     this.deviceResizeObserver.observe(root);
@@ -357,7 +355,7 @@ export class WeChatPreviewView extends ItemView {
     const arrow=this.styleButton.createSpan({cls:'wx-button-icon'});setIcon(arrow,'chevron-down');
     this.styleButton.setAttribute('aria-haspopup','dialog');this.styleButton.setAttribute('aria-controls',this.stylePanel.id);this.styleButton.setAttribute('aria-expanded','false');
     this.styleButton.onclick=()=>this.toggleStylePicker(this.stylePanel.hidden);
-    this.footerButton=this.toolbar.createEl('button',{cls:'wx-footer-button'});const footerIcon=this.footerButton.createSpan({cls:'wx-button-icon'});setIcon(footerIcon,'signature');this.footerButton.createSpan({text:'结尾'});
+    this.footerButton=this.toolbar.createEl('button',{cls:'wx-footer-button'});const footerIcon=this.footerButton.createSpan({cls:'wx-button-icon'});setIcon(footerIcon,'signature');this.footerButton.createSpan({text:'固定结尾'});
     this.footerButton.setAttribute('aria-haspopup','dialog');this.footerButton.setAttribute('aria-controls',this.footerPanel.id);this.footerButton.setAttribute('aria-expanded','false');this.footerButton.onclick=()=>this.toggleFooter(this.footerPanel.hidden);
     this.syncStyleControls();
   }
@@ -409,7 +407,7 @@ export class WeChatPreviewView extends ItemView {
     this.result = null;
     if (!source) {
       this.sourceLabel.setText('打开一篇 Markdown 笔记，然后点击“读取当前笔记”。');
-      this.shadow.replaceChildren(); this.title.setText('等待文章'); this.status.setText('暂无文章'); this.checks.empty(); return;
+      this.shadow.replaceChildren(); this.title.setText('等待文章'); this.status.setText('暂无文章'); return;
     }
     this.sourceLabel.setText(`${source.selection ? '选区 · ' : ''}${source.path.split('/').pop() || source.path}`);
     try {
@@ -434,52 +432,15 @@ export class WeChatPreviewView extends ItemView {
       for (const image of body.querySelectorAll<HTMLImageElement>('img')) image.addEventListener('error', () => {
         if (revision !== this.revision) return;
         image.classList.add('wx-load-error');
-        this.checks.createEl('p', { cls: 'wx-warning', text: `图片加载失败：${image.alt || image.getAttribute('src')}。请检查地址与文件。` });
       }, { once: true });
       this.title.setText(result.title);
       this.status.setText(`公众号参考 ${result.wechatWords.toLocaleString()} 字 · ${result.characters.toLocaleString()} 字符 · 约 ${result.minutes} 分钟 · ${result.chapters} 个章节 · ${result.codeBlocks} 个代码块 · ${result.images.length} 张图片`);
-      this.buildChecks(result);
       this.copyButton.disabled = this.copying;
     } catch (error) {
       if (revision !== this.revision || this.disposed) return;
-      this.shadow.replaceChildren(); this.status.setText('转换失败'); this.checks.empty();
-      this.checks.createEl('p', { cls: 'wx-warning', text: `转换失败：${error instanceof Error ? error.message : String(error)}` });
+      this.shadow.replaceChildren(); this.status.setText('转换失败');
+      new Notice(`转换失败：${error instanceof Error ? error.message : String(error)}`, 12000);
       console.error('WeChat Layout render failed', error);
-    }
-  }
-  private buildChecks(result: ArticleResult): void {
-    this.checks.empty();
-    if (result.warnings.length) {
-      const details = this.checks.createEl('details', { cls: 'wx-warning-details' });
-      details.createEl('summary', { text: `排版提示（${result.warnings.length}）` });
-      const list = details.createDiv({ cls: 'wx-warning-list' });
-      for (const warning of result.warnings) {
-        const item = list.createDiv({ cls: 'wx-warning' });
-        setIcon(item.createSpan({ cls: 'wx-warning-icon', attr: { 'aria-hidden': 'true' } }), 'info');
-        item.createSpan({ cls: 'wx-warning-text', text: warning });
-      }
-    }
-    if (!result.images.length) return;
-
-    const details = this.checks.createEl('details');
-    details.open = result.images.some(image => image.status === 'missing' || image.status === 'unsupported');
-    details.createEl('summary', { text: `图片（${result.images.length}）` });
-    const list = details.createEl('ul', { cls: 'wx-image-list' });
-    for (const image of result.images) {
-      let name = image.path.split(/[\\/]/).pop() || '';
-      if (image.status === 'embedded') {
-        name = image.alt !== image.source ? image.alt : '内嵌图片';
-      } else if (image.status === 'external') {
-        try {
-          name = decodeURIComponent(new URL(image.path).pathname.split('/').pop() || '');
-        } catch {
-          name = name.split(/[?#]/)[0];
-        }
-      }
-      list.createEl('li', {
-        cls: 'wx-image-row',
-        text: name || '未命名图片',
-      });
     }
   }
   private async prepare(result: ArticleResult): Promise<PreparedArticle> {
