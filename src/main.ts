@@ -1,4 +1,4 @@
-import { createDetachedElement } from './dom';
+import { createDetachedElement, setControlName } from './dom';
 import { DEVICE_PREVIEWS } from './device-preview';
 import { App, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, TFile, WorkspaceLeaf, type Editor, type MarkdownFileInfo, type SettingDefinitionItem, parseYaml, requestUrl, setIcon } from 'obsidian';
 import { prepareArticle, normalizeImage, type PreparedArticle } from './images';
@@ -180,14 +180,16 @@ export class WeChatPreviewView extends ItemView {
     const root = this.contentEl; root.empty(); root.addClass('wx-view');
     const header = root.createDiv({ cls: 'wx-header' });
     const heading = header.createDiv({ cls: 'wx-heading' });
-    heading.createEl('h2', { text: '公众号排版' });
+    const titleRow = heading.createDiv({ cls: 'wx-heading-row' });
+    titleRow.createEl('h2', { text: '公众号排版' });
+    titleRow.createSpan({ cls: 'wx-version', text: `v${this.plugin.manifest.version}` });
     this.sourceLabel = heading.createDiv({ cls: 'wx-source' });
     const actions = header.createDiv({ cls: 'wx-header-actions' });
     this.copyButton = actions.createEl('button', { text: '复制正文', cls: 'mod-cta wx-primary' });
     this.copyButton.onclick = () => { void this.copy(); };
     const more = this.moreButton=actions.createEl('button', { cls: 'wx-icon-button' });
     setIcon(more, 'ellipsis');
-    more.setAttribute('aria-label', '更多操作');
+    setControlName(more, '更多操作');
     more.setAttribute('aria-haspopup','menu');more.setAttribute('aria-expanded','false');more.onclick=()=>this.toggleMore(this.morePanel.hidden);
     this.toolbar = header.createDiv({ cls: 'wx-quickbar' });
     this.stylePanel=header.createDiv({cls:'wx-style-popover'});
@@ -196,8 +198,8 @@ export class WeChatPreviewView extends ItemView {
     this.stylePanel.setAttribute('role','dialog');
     this.stylePanel.setAttribute('aria-labelledby', `${this.stylePanel.id}-title`);
     this.footerPanel=header.createDiv({cls:'wx-footer-popover'});this.footerPanel.hidden=true;
-    this.footerPanel.id=`wx-footer-${Math.random().toString(36).slice(2)}`;this.footerPanel.setAttribute('role','dialog');this.footerPanel.setAttribute('aria-label','固定结尾');
-    this.morePanel=header.createDiv({cls:'wx-more-popover'});this.morePanel.hidden=true;this.morePanel.id=`wx-more-${Math.random().toString(36).slice(2)}`;this.moreButton.setAttribute('aria-controls',this.morePanel.id);this.morePanel.setAttribute('role','menu');this.morePanel.setAttribute('aria-label','更多操作');
+    this.footerPanel.id=`wx-footer-${Math.random().toString(36).slice(2)}`;this.footerPanel.setAttribute('role','dialog');this.footerPanel.setAttribute('aria-labelledby',`${this.footerPanel.id}-title`);
+    this.morePanel=header.createDiv({cls:'wx-more-popover'});this.morePanel.hidden=true;this.morePanel.id=`wx-more-${Math.random().toString(36).slice(2)}`;this.moreButton.setAttribute('aria-controls',this.morePanel.id);this.morePanel.setAttribute('role','menu');this.morePanel.setAttribute('aria-labelledby',this.moreButton.getAttribute('aria-labelledby')!);
     this.registerDomEvent(root.ownerDocument,'pointerdown',event=>{
       const target=event.target as Node;
       if(!this.stylePanel.hidden&&!this.stylePanel.contains(target)&&!this.styleButton.contains(target))this.toggleStylePicker(false,false);
@@ -212,6 +214,7 @@ export class WeChatPreviewView extends ItemView {
     });
     const stage = root.createDiv({ cls: 'wx-device-stage' });
     this.previewLabel = stage.createDiv({ cls: 'wx-page-label' });
+    this.previewLabel.id = `wx-preview-label-${Math.random().toString(36).slice(2)}`;
     const device = stage.createDiv({ cls: 'wx-device-frame' });
     const screen = device.createDiv({ cls: 'wx-device-screen' });
     this.deviceReader = screen.createDiv({
@@ -337,7 +340,7 @@ export class WeChatPreviewView extends ItemView {
     this.contentEl.dataset.previewMode = mode;
     if (this.deviceFrame.getAttribute('src') !== device.frame) this.deviceFrame.src = device.frame;
     this.previewLabel.setText(`${device.label}预览`);
-    reader.setAttribute('aria-label', `${device.label}公众号正文预览`);
+    reader.setAttribute('aria-labelledby', this.previewLabel.id);
     this.fitDevicePreview();
     reader.scrollTop = position * Math.max(0, reader.scrollHeight - reader.clientHeight);
   }
@@ -363,7 +366,7 @@ export class WeChatPreviewView extends ItemView {
     this.contentEl.style.setProperty('--wx-accent',getArticleColors(profile.settings).accent);
     this.styleButton.querySelector('.wx-style-button-label')?.setText(profile.name);
     this.styleButton.disabled=this.copying;
-    if(this.footerButton){this.footerButton.disabled=this.copying;const has=!!this.plugin.settingsFor(this.source?.path).footer.trim();this.footerButton.toggleClass('is-set',has);}
+    if(this.footerButton)this.footerButton.disabled=this.copying;
     this.moreButton.disabled=this.copying;
   }
   private buildStylePanel():void {
@@ -375,7 +378,7 @@ export class WeChatPreviewView extends ItemView {
     });
     const close = head.createEl('button', { cls: 'wx-icon-button' });
     setIcon(close, 'x');
-    close.setAttribute('aria-label', '关闭风格选择');
+    setControlName(close, '关闭风格选择');
     close.onclick = () => this.toggleStylePicker(false);
     const body=this.stylePanel.createDiv({cls:'wx-picker-body'});
     const path=this.source?.path;
@@ -409,7 +412,6 @@ export class WeChatPreviewView extends ItemView {
       this.shadow.replaceChildren(); this.title.setText('等待文章'); this.status.setText('暂无文章'); this.checks.empty(); return;
     }
     this.sourceLabel.setText(`${source.selection ? '选区 · ' : ''}${source.path.split('/').pop() || source.path}`);
-    this.sourceLabel.title = `${source.selection ? '选区快照' : '当前笔记'} · ${source.path}`;
     try {
       const result = await renderArticle(source.text, {
         document: this.contentEl.ownerDocument, sourcePath: source.path,
@@ -436,7 +438,6 @@ export class WeChatPreviewView extends ItemView {
       }, { once: true });
       this.title.setText(result.title);
       this.status.setText(`公众号参考 ${result.wechatWords.toLocaleString()} 字 · ${result.characters.toLocaleString()} 字符 · 约 ${result.minutes} 分钟 · ${result.chapters} 个章节 · ${result.codeBlocks} 个代码块 · ${result.images.length} 张图片`);
-      this.status.setAttribute('title', '公众号参考字数：连续英文、连续数字分别按一组计算；字符数：逐个计算字母、数字和标点。均不计空白，最终以公众号显示为准。');
       this.buildChecks(result);
       this.copyButton.disabled = this.copying;
     } catch (error) {

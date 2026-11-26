@@ -11,7 +11,7 @@ Choose one of six ready-made layouts. Each preset styles headings, paragraphs, i
 | Preset | Layout | Best for |
 | --- | --- | --- |
 | 清爽阅读 · Clean Reading | Teal heading rules, light quotes, and generous paragraph spacing | Essays and everyday posts |
-| 黑白杂志 · Monochrome Magazine | Centered serif headings, prominent chapter numbers, and black rules | Long reads and feature articles |
+| 黑白杂志 · Monochrome Magazine | Left-aligned sans-serif headings, gray chapter badges, fine rules, and light quote cards | Long reads and feature articles |
 | 知识卡片 · Knowledge Cards | Blue headings and white cards that group each chapter with its content | Tutorials and reference guides |
 | 苹果极简 · Apple Minimal | Black and gray type, generous spacing, and soft gray blocks | Product introductions and visual stories |
 | 技术文档 · Technical Docs | Dark chapter headers, compact steps, and dark code blocks | How-to guides and engineering notes |

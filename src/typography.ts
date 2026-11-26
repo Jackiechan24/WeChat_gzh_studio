@@ -231,16 +231,20 @@ function stylePresetComposition(root:HTMLElement,s:LayoutSettings,block:string):
     return;
   }
   if(s.composition==='editorial'){
-    for(const h of root.querySelectorAll<HTMLElement>('h2')){
-      appendInlineStyle(h, `border:0;border-top:3px solid #191919;border-bottom:1px solid #191919;padding:20px 0 18px;text-align:center;`);
-      const n=h.querySelector<HTMLElement>('[data-wx-chapter-number]');if(n)replaceInlineStyle(n, 'display:block;font-family:Georgia,"Times New Roman",serif;font-size:inherit;font-weight:400;line-height:1;color:#191919;padding:0 0 8px;margin:0;');
+    for (const heading of root.querySelectorAll<HTMLElement>('h2')) {
+      appendInlineStyle(heading, 'border:0;border-bottom:1px solid #e4e4e7;padding:0 0 12px;text-align:left;color:#18181b;');
+      const number = heading.querySelector<HTMLElement>('[data-wx-chapter-number]');
+      if (number) replaceInlineStyle(number, 'display:inline-block;font-family:inherit;font-size:12px;font-weight:600;line-height:20px;vertical-align:middle;color:#52525b;background-color:#f4f4f5;border:1px solid #e4e4e7;border-radius:4px;padding:1px 6px;margin:0 8px 0 0;');
     }
-    if(lead){applyInlineStyles(lead, { 'font-style': 'italic', color: '#555555', 'padding-bottom': '22px', 'border-bottom': '1px solid #d8d8d8' });}
-    for(const quote of root.querySelectorAll<HTMLElement>('blockquote')){
-      if(quote.dataset.wxCallout)continue;
-      appendInlineStyle(quote, `border:0;border-top:1px solid #8b8b8b;border-bottom:1px solid #8b8b8b;background-color:transparent;padding:20px 8px;font-style:italic;`);
-      for(const p of quote.querySelectorAll<HTMLElement>('p')){applyInlineStyles(p, { 'text-align': 'center' });}
+    if (lead) applyInlineStyles(lead, { color: '#52525b', 'padding-bottom': '16px', 'border-bottom': '1px solid #e4e4e7' });
+    for (const quote of root.querySelectorAll<HTMLElement>('blockquote')) {
+      if (quote.dataset.wxCallout) continue;
+      appendInlineStyle(quote, 'border:1px solid #e4e4e7;border-radius:8px;background-color:#fafafa;padding:14px 16px;font-style:normal;');
     }
+    for (const cell of root.querySelectorAll<HTMLElement>('th,td')) applyInlineStyles(cell, { border: '1px solid #e4e4e7' });
+    for (const header of root.querySelectorAll<HTMLElement>('th')) applyInlineStyles(header, { 'background-color': '#f4f4f5', color: '#18181b' });
+    for (const code of root.querySelectorAll<HTMLElement>('pre')) applyInlineStyles(code, { border: '1px solid #e4e4e7', 'border-radius': '8px', 'background-color': '#fafafa' });
+    for (const image of root.querySelectorAll<HTMLElement>('img')) applyInlineStyles(image, { border: '1px solid #e4e4e7', 'border-radius': '8px' });
   }else if(s.composition==='cards'){
     applyInlineStyles(root, { 'background-color': '#f1f5fb', padding: `12px ${s.contentInset}px` });
     for(const h of root.querySelectorAll<HTMLElement>('h2')){
@@ -323,6 +327,12 @@ function stylePresetHeadings(root:HTMLElement,s:LayoutSettings):void {
       if(s.composition==='editorial'){applyInlineStyles(h, { 'border-left': '2px solid #191919', 'padding-left': '9px' });}
       else if(s.composition==='journal'){applyInlineStyles(h, { 'border-bottom': '1px dotted #d6b99a', 'padding-bottom': '5px' });}
       else{applyInlineStyles(h, { 'background-color': s.composition==='bulletin'?'#fff1f1':s.composition==='technical'?'#edf3f7':s.composition==='cards'?'#eff4fc':'#f1f7f4', padding: '5px 8px', 'border-radius': '3px' });}
+    }
+    if (s.composition === 'editorial') {
+      applyInlineStyles(h, { 'text-align': 'left', color: level <= 3 ? '#18181b' : '#52525b' });
+      if (level === 1) applyInlineStyles(h, { 'font-weight': '700', 'border-bottom': '1px solid #e4e4e7' });
+      if (level === 3) applyInlineStyles(h, { border: '0', padding: '0' });
+      if (level === 4) applyInlineStyles(h, { border: '0', padding: '6px 10px', 'background-color': '#f4f4f5', 'border-radius': '6px' });
     }
     if(s.composition==='apple'){
       applyInlineStyles(h, { color: level<=3?'#1d1d1f':'#6e6e73', border: '0', 'background-color': 'transparent', 'border-radius': '0', padding: '0', 'letter-spacing': '0', 'line-height': level<=2?'1.3':'1.45', 'text-align': level===1?'center':'left' });

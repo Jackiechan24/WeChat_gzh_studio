@@ -24,8 +24,9 @@ interface MoreMenuOptions {
 
 export function buildMorePanel(panel: HTMLElement, ctx: MoreMenuOptions): void {
   const group = (title: string) => {
-    const section = panel.createDiv({ cls: 'wx-more-group', attr: { role: 'group', 'aria-label': title } });
-    section.createDiv({ cls: 'wx-more-label', text: title });
+    const labelId = `${panel.id}-${title}`;
+    const section = panel.createDiv({ cls: 'wx-more-group', attr: { role: 'group', 'aria-labelledby': labelId } });
+    section.createDiv({ cls: 'wx-more-label', text: title, attr: { id: labelId } });
     return section;
   };
   const action = (parent: HTMLElement, item: MenuAction) => {

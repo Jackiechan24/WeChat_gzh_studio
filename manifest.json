@@ -1,7 +1,7 @@
 {
   "id": "wechat-layout",
   "name": "WeChat Layout",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "minAppVersion": "1.15.0",
   "description": "Format Markdown for WeChat Official Accounts with styled previews and image-rich clipboard export.",
   "author": "Local Tools",
