@@ -34,7 +34,8 @@ export function buildStylePicker(body: HTMLElement, ctx: { selectedId: string; c
     });
     const meta = button.createDiv({ cls: 'wx-preset-meta' });
     meta.createEl('strong', { text: profile.name, attr: { id: titleId } });
-    if (selected) setIcon(meta.createSpan({ cls: 'wx-preset-check' }), 'check');
+    const check = meta.createSpan({ cls: 'wx-preset-check', attr: { 'aria-hidden': 'true' } });
+    if (selected) setIcon(check, 'check');
     button.createEl('p', { text: profile.description || '' });
     button.createEl('small', { text: profile.useCase });
     button.onclick = () => { void ctx.choose(profile.id); };

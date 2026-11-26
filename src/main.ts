@@ -448,8 +448,15 @@ export class WeChatPreviewView extends ItemView {
   }
   private buildChecks(result: ArticleResult): void {
     this.checks.empty();
-    for (const warning of result.warnings) {
-      this.checks.createEl('p', { cls: 'wx-warning', text: warning });
+    if (result.warnings.length) {
+      const details = this.checks.createEl('details', { cls: 'wx-warning-details' });
+      details.createEl('summary', { text: `排版提示（${result.warnings.length}）` });
+      const list = details.createDiv({ cls: 'wx-warning-list' });
+      for (const warning of result.warnings) {
+        const item = list.createDiv({ cls: 'wx-warning' });
+        setIcon(item.createSpan({ cls: 'wx-warning-icon', attr: { 'aria-hidden': 'true' } }), 'info');
+        item.createSpan({ cls: 'wx-warning-text', text: warning });
+      }
     }
     if (!result.images.length) return;
 
