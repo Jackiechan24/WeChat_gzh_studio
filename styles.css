@@ -24,8 +24,7 @@
   background:var(--wx-ui-surface);border-bottom:1px solid var(--wx-ui-border);
 }
 .wx-heading { min-width:0; }
-.wx-heading-row { display:flex;align-items:baseline;gap:8px;min-width:0; }
-.wx-version { flex-shrink:0;font-family:var(--font-interface);font-size:11px;line-height:20px;color:var(--wx-ui-secondary);font-variant-numeric:tabular-nums; }
+.wx-menu-version { margin-top:4px;padding:8px;border-top:1px solid var(--wx-ui-border);font-family:var(--font-interface);font-size:11px;line-height:18px;color:var(--wx-ui-secondary);font-variant-numeric:tabular-nums; }
 .wx-control-label { position:absolute;width:1px;height:1px;overflow:hidden;white-space:nowrap;opacity:0;pointer-events:none; }
 .wx-heading-title { margin:0;font-family:var(--font-interface);font-size:14px;font-weight:600;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .wx-source { margin-top:2px;font-size:11px;line-height:16px;color:var(--wx-ui-secondary);overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }

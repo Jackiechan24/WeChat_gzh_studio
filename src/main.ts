@@ -172,16 +172,14 @@ export class WeChatPreviewView extends ItemView {
 
   constructor(leaf: WorkspaceLeaf, private plugin: WeChatLayoutPlugin) { super(leaf); }
   getViewType(): string { return VIEW_TYPE; }
-  getDisplayText(): string { return '公众号排版'; }
+  getDisplayText(): string { return this.plugin.manifest.name; }
   getIcon(): string { return 'newspaper'; }
   async onOpen(): Promise<void> {
     this.disposed = false;
     const root = this.contentEl; root.empty(); root.addClass('wx-view');
     const header = root.createDiv({ cls: 'wx-header' });
     const heading = header.createDiv({ cls: 'wx-heading' });
-    const titleRow = heading.createDiv({ cls: 'wx-heading-row' });
-    titleRow.createDiv({ cls: 'wx-heading-title', text: '公众号排版' });
-    titleRow.createSpan({ cls: 'wx-version', text: `v${this.plugin.manifest.version}` });
+    heading.createDiv({ cls: 'wx-heading-title', text: this.plugin.manifest.name });
     this.sourceLabel = heading.createDiv({ cls: 'wx-source' });
     const actions = header.createDiv({ cls: 'wx-header-actions' });
     this.copyButton = actions.createEl('button', { text: '复制正文', cls: 'mod-cta wx-primary' });
@@ -273,7 +271,7 @@ export class WeChatPreviewView extends ItemView {
       this.toggleStylePicker(false,false);this.toggleFooter(false,false);this.morePanel.empty();
       const close=()=>this.toggleMore(false);
       const current=this.plugin.styleIdFor(this.source?.path);
-      buildMorePanel(this.morePanel,{selection:!!this.source?.selection,hasSource:!!this.source,busy:this.copying,isCommon:current===this.plugin.data.defaultStyleId,mode:this.plugin.data.previewMode,
+      buildMorePanel(this.morePanel,{version:this.plugin.manifest.version,selection:!!this.source?.selection,hasSource:!!this.source,busy:this.copying,isCommon:current===this.plugin.data.defaultStyleId,mode:this.plugin.data.previewMode,
         reload:async()=>{close();await this.refresh(true);},footer:()=>{close();this.toggleFooter(true);},
         setCommon:async()=>{this.plugin.data.defaultStyleId=current;await this.plugin.persist();close();new Notice('新文章将直接使用这套风格');},
         restore:async()=>{close();await this.flushFooter();if(this.source)delete this.plugin.data.articleStyleIds[this.source.path];await this.plugin.persist();this.syncStyleControls();await this.render();},

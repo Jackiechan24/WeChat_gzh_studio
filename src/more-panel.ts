@@ -10,6 +10,7 @@ interface MenuAction {
 }
 
 interface MoreMenuOptions {
+  version: string;
   selection: boolean;
   hasSource: boolean;
   busy: boolean;
@@ -58,6 +59,8 @@ export function buildMorePanel(panel: HTMLElement, ctx: MoreMenuOptions): void {
     button.createSpan({ text });
     button.onclick = () => { void ctx.modeChange(value); };
   }
+
+  panel.createDiv({ cls: 'wx-menu-version', text: `版本 v${ctx.version}` });
 
   panel.onkeydown = event => {
     const items = [...panel.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];

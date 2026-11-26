@@ -1,10 +1,10 @@
-# WeChat Layout · 公众号排版
+# GZH Aura Design · 公众号排版
 
 [English README](README.md)
 
 **在 Obsidian 写完，选一套风格，把排好版的正文和图片一起粘贴到公众号。**
 
-WeChat Layout 是面向公众号作者的 Obsidian 桌面插件。打开笔记即可套用整套排版，在手机或 iPad 预览中检查阅读效果，再复制到公众号编辑器。标题、段落、图片、引用、表格和代码会按所选风格一起排好。
+GZH Aura Design 是面向公众号作者的 Obsidian 桌面插件。打开笔记即可套用整套排版，在手机或 iPad 预览中检查阅读效果，再复制到公众号编辑器。标题、段落、图片、引用、表格和代码会按所选风格一起排好。
 
 ## 六套风格，各有不同的排版
 
@@ -42,7 +42,7 @@ WeChat Layout 是面向公众号作者的 Obsidian 桌面插件。打开笔记�
 
 支持 **Obsidian 1.15.0 及以上桌面版**。
 
-- **商店安装**　打开「设置 → 第三方插件」，搜索 **WeChat Layout**，安装后启用。 [Obsidian 插件页](https://community.obsidian.md/plugins/wechat-layout)
+- **商店安装**　打开「设置 → 第三方插件」，搜索 **GZH Aura Design**，安装后启用。 [Obsidian 插件页](https://community.obsidian.md/plugins/wechat-layout)
 - **手动安装**　将 `main.js`、`manifest.json`、`styles.css` 放入笔记库的 `.obsidian/plugins/wechat-layout/`，然后启用插件。手动升级时替换这三个文件，保留 `data.json`。 [GitHub 最新发行版](https://github.com/Jackiechan24/WeChat_gzh_studio/releases/latest)
 
 ## 使用

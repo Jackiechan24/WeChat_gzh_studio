@@ -1,4 +1,4 @@
-# WeChat Layout
+# GZH Aura Design
 
 [简体中文](README.zh-CN.md)
 
@@ -17,7 +17,7 @@ Choose one of six ready-made layouts. Each preset styles headings, paragraphs, i
 | 技术文档 · Technical Docs | Dark chapter headers, compact steps, and dark code blocks | How-to guides and engineering notes |
 | 红黑简报 · Red and Black Brief | Red chapter numbers and rules with a compact text layout | Briefings and summaries |
 
-<img src="docs/images/preset-picker.png" width="440" alt="WeChat Layout preset picker showing the same sample in six layouts">
+<img src="docs/images/preset-picker.png" width="440" alt="GZH Aura Design preset picker showing the same sample in six layouts">
 
 ## Typesetting and publishing features
 
@@ -42,7 +42,7 @@ Choose one of six ready-made layouts. Each preset styles headings, paragraphs, i
 
 Requires **Obsidian 1.15.0 or later on desktop**.
 
-- **Community plugins**　Open Settings → Community plugins, search for **WeChat Layout**, then install and enable it. [Community directory](https://community.obsidian.md/plugins/wechat-layout)
+- **Community plugins**　Open Settings → Community plugins, search for **GZH Aura Design**, then install and enable it. [Community directory](https://community.obsidian.md/plugins/wechat-layout)
 - **Manual installation**　Download `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/wechat-layout/` and enable the plugin. For a manual upgrade, replace the three files and keep `data.json`. [Latest GitHub release](https://github.com/Jackiechan24/WeChat_gzh_studio/releases/latest)
 
 ## Use
