@@ -4,7 +4,9 @@
 
 **Format an Obsidian note for WeChat Official Accounts and paste the styled text with its images.**
 
-Choose one of six ready-made layouts. Each preset styles headings, paragraphs, images, quotes, lists, tables, and code as a whole. Preview the article on a phone or iPad, then copy the body into the WeChat editor.
+GZH Aura Design is a desktop Obsidian plugin for publishing to WeChat Official Accounts. Choose one of six complete presets to style headings, paragraphs, images, quotes, lists, tables, and code together. There is no need to configure fonts, colors, or spacing one by one.
+
+Compare layout cards, check the result in a phone or iPad device preview, then click Copy body to paste the styled text and images into WeChat. Reuse your favorite layout and Markdown ending, or export a complete HTML file with embedded images.
 
 ## Six layouts for different articles
 
@@ -17,9 +19,13 @@ Choose one of six ready-made layouts. Each preset styles headings, paragraphs, i
 | 技术文档 · Technical Docs | Dark chapter headers, compact steps, and dark code blocks | How-to guides and engineering notes |
 | 红黑简报 · Red and Black Brief | Red chapter numbers and rules with a compact text layout | Briefings and summaries |
 
-<img src="docs/images/preset-picker.png" width="440" alt="GZH Aura Design preset picker showing the same sample in six layouts">
+Each card separates the preset name, layout preview, and one line of visual features. Distinct sample headings make it easier to compare chapter headers, body text, and quotes. All six cards are visible together without scrolling.
+
+<img src="docs/images/preset-picker.png" width="520" alt="Updated card-based picker showing all six presets with distinct headings, body text, and quotes">
 
 ## Typesetting and publishing features
+
+- **A compact interface.** Equally sized layout, ending, and copy buttons sit in a neutral toolbar with fine borders and clear selection states. The More menu groups article actions, favorite layouts, device previews, and version information.
 
 - **A clear reading hierarchy.** All six presets use 16px body text with 1.75 line spacing. H1–H4 have distinct sizes and styles. Captions, source notes, and footnotes use smaller type.
 - **Copy text and images together.** Supported Obsidian attachments, Markdown images, and remote images are embedded in the copied HTML. If an image is unavailable, you get a message identifying it before the clipboard is written.
@@ -31,11 +37,11 @@ Choose one of six ready-made layouts. Each preset styles headings, paragraphs, i
 
 **Phone · Knowledge Cards**
 
-<img src="docs/images/phone-preview.png" width="760" alt="The Knowledge Cards layout in the phone preview">
+<img src="docs/images/phone-preview.png" width="760" alt="Updated toolbar and phone preview with blue chapter headers and white content cards">
 
 **iPad · Apple Minimal**
 
-<img src="docs/images/ipad-preview.png" width="760" alt="The Apple Minimal layout in the iPad preview">
+<img src="docs/images/ipad-preview.png" width="760" alt="Updated toolbar and iPad preview with black and gray headings, generous spacing, and soft quote blocks">
 
 
 ## Install
